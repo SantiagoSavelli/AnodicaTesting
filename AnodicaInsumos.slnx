@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="AnodicaInsumos.AccessoDatos/AnodicaInsumos.AccessoDatos.csproj" />
+  <Project Path="AnodicaInsumos.Modelos/AnodicaInsumos.Modelos.csproj" />
+  <Project Path="AnodicaInsumos.Utilidades/AnodicaInsumos.Utilidades.csproj" />
+  <Project Path="AnodicaInsumos/AnodicaInsumos.csproj" />
+</Solution>

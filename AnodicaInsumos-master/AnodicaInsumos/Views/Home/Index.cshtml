@@ -1,0 +1,22 @@
+﻿@{
+    ViewData["Title"] = "Página Inicio";
+}
+
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 70vh;">
+    <div class="text-center hero-bg shadow-lg">
+        <h1 class="display-4 fw-bold mb-3">
+            Sistema de Administración de Insumos
+        </h1>
+
+        <p class="lead text-secondary mb-4">
+            Gestiona, controla y optimiza el stock de insumos.
+        </p>
+
+        <a asp-controller="Insumos"
+           asp-action="Index"
+           class="btn btn-primary btn-lg px-4 shadow">
+            <i class="bi bi-box-seam me-2"></i>
+            Ir a Insumos
+        </a>
+    </div>
+</div>

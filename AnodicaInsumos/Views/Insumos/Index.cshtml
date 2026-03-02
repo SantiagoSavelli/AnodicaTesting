@@ -1,0 +1,41 @@
+﻿@model AnodicaInsumos.Modelos.Insumo
+@{
+    ViewData["Title"] = "Lista de Insumos";
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div>
+                <h2 class="mb-0">Insumos</h2>
+                <small class="text-muted">Administrá el stock y unidades de medida</small>
+            </div>
+        </div>
+
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Nuevo insumo
+        </a>
+    </div>
+
+    <div class="card bg-dark text-light shadow border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table id="tblInsumos" class="table table-dark table-hover align-middle mb-0">
+                    <thead class="border-bottom border-secondary">
+                        <tr class="text-uppercase small text-secondary">
+                            <th class="ps-3">Código</th>
+                            <th>Nombre</th>
+                            <th class="text-center">Unidad de Medida</th>
+                            <th class="text-end pe-3">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/insumos.js"></script>
+}

@@ -1,0 +1,41 @@
+﻿@{
+    ViewData["Title"] = "Lista de Insumos";
+}
+
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div>
+                <h2 class="mb-0">Insumos</h2>
+                <small class="text-muted">Administrá el stock y unidades de medida</small>
+            </div>
+        </div>
+
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Nuevo insumo
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 200px;">Código</th>
+                            <th>Nombre</th>
+                            <th style="width: 180px;">Unidad de Medida</th>
+                            <th class="text-end" style="width: 180px;">Acciones</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/insumos.js"></script>
+}
