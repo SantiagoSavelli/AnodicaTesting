@@ -39,8 +39,11 @@ async function cargarTabla() {
                     <a class="btn btn-sm btn-warning" href="/Insumos/Edit/${id}" title="Editar">
                       <i class="bi bi-pencil"></i>
                     </a>
-                    <button class="btn btn-sm btn-danger" onclick="borrarInsumo(${id})" title="Eliminar">
-                      <i class="bi bi-trash"></i>
+                    <button class="btn btn-sm btn-danger"
+                            data-id="${id}"
+                            data-nombre="${escapeHtml(nombre)}"
+                            onclick="abrirModalEliminar(this)">
+                        <i class="bi bi-trash"></i>
                     </button>
                   </div>
                 </td>
@@ -53,9 +56,36 @@ async function cargarTabla() {
     }
 }
 
-async function borrarInsumo(id) {
-    if (!confirm("¿Seguro que querés borrar este insumo?")) return;
+let idAEliminar = null;
+let modalEliminar = null;
 
+document.addEventListener("DOMContentLoaded", () => {
+    cargarTabla();
+
+    modalEliminar = new bootstrap.Modal(document.getElementById("modalEliminar"));
+
+    document.getElementById("btnConfirmarEliminar")
+        .addEventListener("click", async () => {
+
+            if (!idAEliminar) return;
+
+            await borrarInsumo(idAEliminar);
+            idAEliminar = null;
+            modalEliminar.hide();
+        });
+});
+
+function abrirModalEliminar(btn) {
+    idAEliminar = btn.getAttribute("data-id");
+
+    const nombre = btn.getAttribute("data-nombre");
+    document.getElementById("modalEliminarDetalle").textContent =
+        nombre ? `Insumo: ${nombre}` : "";
+
+    modalEliminar.show();
+}
+
+async function borrarInsumo(id) {
     try {
         const resp = await fetch(`/Insumos/Delete/${id}`, { method: "DELETE" });
         const json = await resp.json();

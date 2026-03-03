@@ -39,6 +39,39 @@ namespace AnodicaInsumos.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult Edit(short id)
+        {
+            var insumo = _contenedorTrabajo.Insumo.Get(id);
+
+            if (insumo == null)
+            {
+                return NotFound();
+            }
+
+            return View(insumo);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(short id, Insumo insumo)
+        {
+            if (id != insumo.InsumoID)
+                return BadRequest();
+
+            if (!ModelState.IsValid)
+                return View(insumo);
+
+            var existe = _contenedorTrabajo.Insumo.Get(id);
+            if (existe == null)
+                return NotFound();
+
+            _contenedorTrabajo.Insumo.Update(insumo);
+            _contenedorTrabajo.Save();
+
+            return RedirectToAction(nameof(Index));
+        }
+
         #region Llamadas a la API
         public IActionResult GetAll()
         {

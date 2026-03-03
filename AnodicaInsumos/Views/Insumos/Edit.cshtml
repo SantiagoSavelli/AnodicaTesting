@@ -1,7 +1,7 @@
 ﻿@model AnodicaInsumos.Modelos.Insumo
 
 @{
-    ViewData["Title"] = "Nuevo Insumo";
+    ViewData["Title"] = "Editar Insumo";
 }
 
 <div class="container py-4">
@@ -9,8 +9,8 @@
     <div class="card shadow-sm border-0 mb-3">
         <div class="card-body d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div>
-                <h2 class="mb-1 fw-bold">Nuevo Insumo</h2>
-                <div class="text-secondary">Completá los datos para registrar un insumo.</div>
+                <h2 class="mb-1 fw-bold">Editar Insumo</h2>
+                <div class="text-secondary">Modificá los datos del insumo y guardá los cambios.</div>
             </div>
 
             <a asp-action="Index" class="btn btn-outline-light">
@@ -22,8 +22,10 @@
     <div class="card shadow-sm border-0">
         <div class="card-body">
 
-            <form asp-action="Create" method="post" class="row g-3">
+            <form asp-action="Edit" method="post" class="row g-3">
                 @Html.AntiForgeryToken()
+
+                <input type="hidden" asp-for="InsumoID" />
 
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
@@ -68,7 +70,7 @@
                         Cancelar
                     </a>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check2-circle me-1"></i> Guardar
+                        <i class="bi bi-check2-circle me-1"></i> Guardar cambios
                     </button>
                 </div>
 
