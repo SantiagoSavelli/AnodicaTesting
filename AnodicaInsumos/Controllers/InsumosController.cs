@@ -73,9 +73,20 @@ namespace AnodicaInsumos.Controllers
         }
 
         #region Llamadas a la API
-        public IActionResult GetAll()
+        public IActionResult GetAll(string? codigo, string? nombre, string? unidad)
         {
-            return Json(new { data = _contenedorTrabajo.Insumo.GetAll() });
+            var lista = _contenedorTrabajo.Insumo.GetAll();
+
+            if (!string.IsNullOrWhiteSpace(codigo))
+                lista = lista.Where(x => x.CodigoInsumo.Contains(codigo, StringComparison.OrdinalIgnoreCase));
+
+            if (!string.IsNullOrWhiteSpace(nombre))
+                lista = lista.Where(x => x.InsumoNombre.Contains(nombre, StringComparison.OrdinalIgnoreCase));
+
+            if (!string.IsNullOrWhiteSpace(unidad))
+                lista = lista.Where(x => x.UnidadMedida.Contains(unidad, StringComparison.OrdinalIgnoreCase));
+
+            return Json(new { data = lista });
         }
 
         [HttpDelete]

@@ -1,5 +1,33 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
+﻿let idAEliminar = null;
+let modalEliminar = null;
+
+document.addEventListener("DOMContentLoaded", () => {
     cargarTabla();
+
+    modalEliminar = new bootstrap.Modal(document.getElementById("modalEliminar"));
+
+    document.getElementById("btnConfirmarEliminar")
+        .addEventListener("click", async () => {
+
+            if (!idAEliminar) return;
+
+            await borrarInsumo(idAEliminar);
+            idAEliminar = null;
+            modalEliminar.hide();
+        });
+
+    const recargar = debounce(() => cargarTabla(), 300);
+
+    document.getElementById("fCodigo")?.addEventListener("input", recargar);
+    document.getElementById("fNombre")?.addEventListener("input", recargar);
+    document.getElementById("fUnidad")?.addEventListener("input", recargar);
+
+    document.getElementById("btnLimpiar")?.addEventListener("click", () => {
+        document.getElementById("fCodigo").value = "";
+        document.getElementById("fNombre").value = "";
+        document.getElementById("fUnidad").value = "";
+        cargarTabla();
+    });
 });
 
 async function cargarTabla() {
@@ -8,7 +36,13 @@ async function cargarTabla() {
     tbody.innerHTML = `<tr><td colspan="6" class="text-center text-secondary py-4">Cargando...</td></tr>`;
 
     try {
-        const resp = await fetch("/Insumos/GetAll");
+
+        const codigo = document.getElementById("fCodigo")?.value?.trim() ?? "";
+        const nombre = document.getElementById("fNombre")?.value?.trim() ?? "";
+        const unidad = document.getElementById("fUnidad")?.value?.trim() ?? "";
+
+        const qs = new URLSearchParams({ codigo, nombre, unidad });
+        const resp = await fetch(`/Insumos/GetAll?${qs.toString()}`);
         const json = await resp.json();
 
         const data = json.data ?? [];
@@ -56,25 +90,6 @@ async function cargarTabla() {
     }
 }
 
-let idAEliminar = null;
-let modalEliminar = null;
-
-document.addEventListener("DOMContentLoaded", () => {
-    cargarTabla();
-
-    modalEliminar = new bootstrap.Modal(document.getElementById("modalEliminar"));
-
-    document.getElementById("btnConfirmarEliminar")
-        .addEventListener("click", async () => {
-
-            if (!idAEliminar) return;
-
-            await borrarInsumo(idAEliminar);
-            idAEliminar = null;
-            modalEliminar.hide();
-        });
-});
-
 function abrirModalEliminar(btn) {
     idAEliminar = btn.getAttribute("data-id");
 
@@ -114,4 +129,12 @@ function escapeHtml(str) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+}
+
+function debounce(fn, delay = 300) {
+    let t;
+    return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), delay);
+    };
 }
