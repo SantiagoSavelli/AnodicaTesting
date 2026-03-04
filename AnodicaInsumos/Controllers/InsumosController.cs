@@ -73,20 +73,33 @@ namespace AnodicaInsumos.Controllers
         }
 
         #region Llamadas a la API
-        public IActionResult GetAll(string? codigo, string? nombre, string? unidad)
+        [HttpGet]
+        public IActionResult GetAll(string? codigo, string? nombre, string? unidad, int page = 1, int pageSize = 10)
         {
-            var lista = _contenedorTrabajo.Insumo.GetAll();
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            // Ideal: que GetAll devuelva IQueryable; si devuelve IEnumerable, igual funciona pero menos eficiente.
+            var query = _contenedorTrabajo.Insumo.GetAll().AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(codigo))
-                lista = lista.Where(x => x.CodigoInsumo.Contains(codigo, StringComparison.OrdinalIgnoreCase));
+                query = query.Where(x => x.CodigoInsumo.Contains(codigo));
 
             if (!string.IsNullOrWhiteSpace(nombre))
-                lista = lista.Where(x => x.InsumoNombre.Contains(nombre, StringComparison.OrdinalIgnoreCase));
+                query = query.Where(x => x.InsumoNombre.Contains(nombre));
 
             if (!string.IsNullOrWhiteSpace(unidad))
-                lista = lista.Where(x => x.UnidadMedida.Contains(unidad, StringComparison.OrdinalIgnoreCase));
+                query = query.Where(x => x.UnidadMedida.Contains(unidad));
 
-            return Json(new { data = lista });
+            var total = query.Count();
+
+            var data = query
+                .OrderBy(x => x.InsumoID)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return Json(new { data, total, page, pageSize });
         }
 
         [HttpDelete]
