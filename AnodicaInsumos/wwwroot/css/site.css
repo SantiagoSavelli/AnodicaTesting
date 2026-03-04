@@ -18,7 +18,8 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+    background-color: #0f172a;
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -28,10 +29,6 @@ body {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
-}
-
-body {
-    background-color: #0f172a;
 }
 
 .card {
@@ -73,4 +70,13 @@ body {
 
 #tblInsumos tbody tr:hover {
     background-color: rgba(255,255,255,.03);
+}
+
+header, .navbar {
+    position: relative;
+    z-index: 2000;
+}
+
+.dropdown-menu {
+    z-index: 2100; 
 }

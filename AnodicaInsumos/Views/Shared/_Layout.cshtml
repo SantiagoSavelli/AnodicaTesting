@@ -11,11 +11,11 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 
-<body class="bg-dark text-light">
+<body class="bg-dark text-light d-flex flex-column min-vh-100">
 
     <header>
         <nav class="navbar navbar-expand-sm navbar-dark bg-black border-bottom border-secondary shadow-sm mb-4">
-            <div class="container">
+            <div class="container-fluid">
                 <a class="navbar-brand fw-bold d-flex align-items-center gap-2"
                    asp-area="" asp-controller="Home" asp-action="Index">
                     <img src="~/imagenes/logo.png" width="150" />
@@ -23,21 +23,52 @@
 
                 <button class="navbar-toggler" type="button"
                         data-bs-toggle="collapse"
-                        data-bs-target="#navbarMain">
+                        data-bs-target="#navbarMain"
+                        aria-controls="navbarMain"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbarMain">
-                    <ul class="navbar-nav ms-auto gap-3">
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-controller="Home" asp-action="Index">
-                                <i class="bi bi-house-door me-1"></i> Inicio
+                    <ul class="navbar-nav ms-3 gap-2 align-items-sm-center">
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-light d-flex align-items-center"
+                               href="#"
+                               id="adminDropdown"
+                               role="button"
+                               data-bs-toggle="dropdown"
+                               aria-expanded="false">
+                                <i class="bi bi-gear-wide-connected me-1"></i> Administración
                             </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-controller="Insumos" asp-action="Index">
-                                <i class="bi bi-box-seam me-1"></i> Insumos
-                            </a>
+
+                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark border border-secondary shadow"
+                                aria-labelledby="adminDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="#" tabindex="-1" aria-disabled="true">
+                                        <i class="bi bi-truck me-2"></i> Proveedores
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a class="dropdown-item" href="#" tabindex="-1" aria-disabled="true">
+                                        <i class="bi bi-diagram-3 me-2"></i> Líneas
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a class="dropdown-item" href="#" tabindex="-1" aria-disabled="true">
+                                        <i class="bi bi-person-badge me-2"></i> Perfiles
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Insumos" asp-action="Index">
+                                        <i class="bi bi-box-seam me-2"></i> Insumos
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                     </ul>
                 </div>
@@ -45,13 +76,13 @@
         </nav>
     </header>
 
-    <div class="container">
+    <div class="container flex-grow-1">
         <main role="main" class="pb-4">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top border-secondary text-center py-3 text-muted bg-black">
+    <footer class="border-top border-secondary mt-auto text-center py-3 text-muted bg-black mt-auto">
         &copy; 2026 - AnódicaInsumos
     </footer>
 

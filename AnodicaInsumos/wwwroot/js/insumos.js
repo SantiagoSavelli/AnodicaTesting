@@ -79,6 +79,9 @@ async function cargarTabla() {
                 </td>
                 <td class="text-end pe-3">
                   <div class="btn-group" role="group">
+                    <a class="btn btn-sm btn-outline-info" href="/Insumos/Details/${id}" title="Detalle">
+                        <i class="bi bi-eye"></i>
+                    </a>
                     <a class="btn btn-sm btn-warning" href="/Insumos/Edit/${id}" title="Editar">
                       <i class="bi bi-pencil"></i>
                     </a>

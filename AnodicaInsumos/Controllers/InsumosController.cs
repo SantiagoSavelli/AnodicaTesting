@@ -72,6 +72,14 @@ namespace AnodicaInsumos.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpGet]
+        public IActionResult Details(short id)
+        {
+            var insumo = _contenedorTrabajo.Insumo.Get(id);
+            if (insumo == null) return NotFound();
+            return View(insumo);
+        }
+
         #region Llamadas a la API
         [HttpGet]
         public IActionResult GetAll(string? codigo, string? nombre, string? unidad, int page = 1, int pageSize = 10)
