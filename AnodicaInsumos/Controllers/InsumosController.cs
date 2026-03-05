@@ -1,6 +1,7 @@
 ﻿using AnodicaInsumos.AccessoDatos.Data.Repository.IRepository;
 using AnodicaInsumos.Modelos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace AnodicaInsumos.Controllers
 {
@@ -22,21 +23,44 @@ namespace AnodicaInsumos.Controllers
         [HttpGet]
         public IActionResult Create()
         {
+            var tipos = _contenedorTrabajo.TipoProveedor.GetAll()
+                .Select(t => new SelectListItem
+                {
+                    Text = t.TipoProveedorNombre,
+                    Value = t.TipoProveedorID.ToString()
+                }).ToList();
+
+            ViewBag.TiposProveedor = tipos;
+
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Insumo insumo)
+        public IActionResult Create(Proveedor proveedor, List<byte> tiposSeleccionados)
         {
-            if (ModelState.IsValid) 
-            { 
-                _contenedorTrabajo.Insumo.Add(insumo);
+            if (ModelState.IsValid)
+            {
+                _contenedorTrabajo.Proveedor.Add(proveedor);
                 _contenedorTrabajo.Save();
+
+                foreach (var tipoId in tiposSeleccionados)
+                {
+                    var relacion = new ProveedorTipoProveedor
+                    {
+                        ProveedorRef = proveedor.ProveedorID,
+                        TipoProveedorRef = tipoId
+                    };
+
+                    _contenedorTrabajo.ProveedorTipoProveedor.Add(relacion);
+                }
+
+                _contenedorTrabajo.Save();
+
                 return RedirectToAction(nameof(Index));
             }
 
-            return View();
+            return View(proveedor);
         }
 
         [HttpGet]

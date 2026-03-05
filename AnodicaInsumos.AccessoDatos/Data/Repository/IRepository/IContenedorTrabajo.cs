@@ -11,6 +11,8 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository.IRepository
         // Repositorios
         IInsumosRepository Insumo { get; }
         IProveedorRepository Proveedor { get; }
+        ITipoProveedorRepository TipoProveedor { get; }
+        IProveedorTipoProveedorRepository ProveedorTipoProveedor { get; }
         void Save();
     }
 }
