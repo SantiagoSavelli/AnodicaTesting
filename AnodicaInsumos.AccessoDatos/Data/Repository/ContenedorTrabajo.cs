@@ -15,9 +15,11 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
         {
             _db = db;
             Insumo = new InsumosRepository(_db);
+            Proveedor = new ProveedorRepository(_db);
         }
 
         public IInsumosRepository Insumo {  get; private set; }
+        public IProveedorRepository Proveedor { get; private set; }
 
         public void Dispose()
         {
