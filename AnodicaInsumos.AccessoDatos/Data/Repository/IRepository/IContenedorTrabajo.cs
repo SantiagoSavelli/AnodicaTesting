@@ -10,6 +10,16 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository.IRepository
     {
         // Repositorios
         IInsumosRepository Insumo { get; }
+        IProveedorRepository Proveedor { get; }
+        ITipoProveedorRepository TipoProveedor { get; }
+        IProveedorTipoProveedorRepository ProveedorTipoProveedor { get; }
+        ILineaGrupoRepository LineaGrupo { get; }
+        ILineaRepository Linea { get; }
+        IPerfilRepository Perfil { get; }
+        IPerfilEquivalenciaRepository PerfilEquivalencia { get; }
+        IUbicacionRepository Ubicacion { get; }
+        IPerfilTratamientoRepository PerfilTratamiento { get; }
+        ITratamientoRepository Tratamiento { get; }
         void Save();
     }
 }

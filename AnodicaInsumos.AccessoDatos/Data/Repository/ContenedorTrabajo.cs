@@ -15,9 +15,29 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
         {
             _db = db;
             Insumo = new InsumosRepository(_db);
+            Proveedor = new ProveedorRepository(_db);
+            TipoProveedor = new TipoProveedorRepository(_db);
+            ProveedorTipoProveedor = new ProveedorTipoProveedorRepository(_db);
+            Linea = new LineaRepository(_db);
+            LineaGrupo = new LineaGrupoRespository(_db);
+            Perfil = new PerfilRepository(_db);
+            PerfilEquivalencia = new PerfilEquivalenciaRepository(_db);
+            Ubicacion = new UbicacionRepository(_db);
+            PerfilTratamiento = new PerfilTratamientoRepository(_db);
+            Tratamiento = new TratamientoRepository(_db);
         }
 
         public IInsumosRepository Insumo {  get; private set; }
+        public IProveedorRepository Proveedor { get; private set; }
+        public ITipoProveedorRepository TipoProveedor { get; private set; }
+        public IProveedorTipoProveedorRepository ProveedorTipoProveedor { get; private set; }
+        public ILineaRepository Linea { get; private set; }
+        public ILineaGrupoRepository LineaGrupo { get; private set; }
+        public IPerfilRepository Perfil { get; private set; }
+        public IPerfilEquivalenciaRepository PerfilEquivalencia { get; private set; }
+        public IUbicacionRepository Ubicacion { get; private set; }
+        public IPerfilTratamientoRepository PerfilTratamiento { get; private set; }
+        public ITratamientoRepository Tratamiento { get; private set; }
 
         public void Dispose()
         {
