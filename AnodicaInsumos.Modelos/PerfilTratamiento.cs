@@ -11,7 +11,7 @@ namespace AnodicaInsumos.Modelos
         [Key]
         public int PerfilTratamientoId { get; set; }
 
-        [Required(ErrorMessage = "Perfil obligatorio"]
+        [Required(ErrorMessage = "Perfil obligatorio")]
         public int PerfilRef { get; set; }
 
         [Required(ErrorMessage = "Tratamiento obligatorio")]
