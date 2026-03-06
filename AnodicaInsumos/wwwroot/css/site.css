@@ -80,3 +80,12 @@ header, .navbar {
 .dropdown-menu {
     z-index: 2100; 
 }
+
+.perfil-img {
+    max-height: 70px;
+    max-width: 140px;
+    object-fit: contain;
+    border-radius: 6px;
+    background-color: #0f172a;
+    padding: 4px;
+}
