@@ -1,0 +1,360 @@
+﻿@model AnodicaInsumos.Modelos.Perfil
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Nuevo Perfil";
+
+    var proveedores = ViewBag.Proveedores as List<SelectListItem> ?? new();
+    var lineas = ViewBag.Lineas as List<SelectListItem> ?? new();
+    var ubicaciones = ViewBag.Ubicaciones as List<SelectListItem> ?? new();
+    var tratamientos = ViewBag.Tratamientos as List<SelectListItem> ?? new();
+}
+
+<div class="container py-4">
+
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+                <h2 class="mb-1 fw-bold">Nuevo Perfil</h2>
+                <div class="text-secondary">Completá los datos generales, imagen y stock mínimo por tratamiento.</div>
+            </div>
+
+            <a asp-action="Index" class="btn btn-outline-light">
+                <i class="bi bi-arrow-left me-1"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <form asp-action="Create" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <h4 class="fw-bold mb-3">Datos generales</h4>
+
+                <div class="row g-3">
+
+                    <div class="col-md-3">
+                        <label asp-for="PerfilCodigoAlcemar" class="form-label text-secondary small">Código</label>
+                        <input asp-for="PerfilCodigoAlcemar" class="form-control" placeholder="Ej: 101" />
+                        <span asp-validation-for="PerfilCodigoAlcemar" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label text-secondary small">Proveedor</label>
+                        <select id="ProveedorFiltro" class="form-select">
+                            <option value="">Seleccionar proveedor...</option>
+                            @foreach (var item in proveedores)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-5">
+                        <label asp-for="LineaRef" class="form-label text-secondary small">Línea</label>
+                        <select asp-for="LineaRef" asp-items="lineas" class="form-select" id="LineaRef">
+                            <option value="">Seleccionar línea...</option>
+                        </select>
+                        <span asp-validation-for="LineaRef" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="Descripcion" class="form-label text-secondary small"></label>
+                        <input asp-for="Descripcion" class="form-control" placeholder="Ej: MARCO CORREDIZA - LINEA LIVIANA" />
+                        <span asp-validation-for="Descripcion" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small">Forma</label>
+                        <input type="file" name="archivoImagen" id="archivoImagen" class="form-control" accept="image/*" />
+                        <small class="text-secondary">Podés cargar una imagen del perfil.</small>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small d-block">Vista previa</label>
+                        <div class="border border-secondary rounded bg-dark-subtle d-flex align-items-center justify-content-center"
+                             style="height:110px;">
+                            <img id="previewImagen"
+                                 src="https://placehold.co/100x70?text=Sin+imagen"
+                                 alt="Vista previa"
+                                 style="max-height:90px; max-width:100%; object-fit:contain;" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="PesoXmetro" class="form-label text-secondary small">Peso/metro</label>
+                        <input asp-for="PesoXmetro" type="number" step="0.01" min="0" class="form-control" id="PesoXmetro" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="LongTiraMts" class="form-label text-secondary small">Mts longitud tira</label>
+                        <input asp-for="LongTiraMts" type="number" step="0.01" min="0" class="form-control" id="LongTiraMts" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="CantTirasPaquete" class="form-label text-secondary small">Tiras/paquete</label>
+                        <input asp-for="CantTirasPaquete" type="number" min="0" class="form-control" />
+                    </div>
+
+                    <div class="col-md-3 d-flex align-items-end">
+                        <div class="form-check form-switch">
+                            <input asp-for="ManejaStockPropio" class="form-check-input" />
+                            <label asp-for="ManejaStockPropio" class="form-check-label"></label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="PesoXtira" class="form-label text-secondary small">Peso/tira</label>
+                        <input asp-for="PesoXtira" type="number" step="0.01" min="0" class="form-control" id="PesoXtira" readonly />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="UbicacionRef" class="form-label text-secondary small">Ubicación</label>
+                        <select asp-for="UbicacionRef" asp-items="ubicaciones" class="form-select">
+                            <option value="">Seleccionar ubicación...</option>
+                        </select>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <h4 class="fw-bold mb-3">Ubicación y Stock Mínimo por Tratamiento</h4>
+
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0">
+                        <thead class="border-bottom border-secondary">
+                            <tr class="text-uppercase small text-secondary">
+                                <th>Tratamiento</th>
+                                <th>Ubicación</th>
+                                <th>Stock mínimo</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var tratamiento in tratamientos)
+                            {
+                                <tr>
+                                    <td>
+                                        @tratamiento.Text
+                                        <input type="hidden" name="tratamientoIds" value="@tratamiento.Value" />
+                                    </td>
+
+                                    <td>
+                                        <select name="ubicacionesTratamiento" class="form-select form-select-sm">
+                                            <option value="">Sin especificar</option>
+                                            @foreach (var ubicacion in ubicaciones)
+                                            {
+                                                <option value="@ubicacion.Value">@ubicacion.Text</option>
+                                            }
+                                        </select>
+                                    </td>
+
+                                    <td>
+                                        <input type="number"
+                                               name="stockMinimo"
+                                               class="form-control form-control-sm"
+                                               min="0"
+                                               value="0" />
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+
+                <h4 class="fw-bold mb-3">Equivalencias</h4>
+
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0">
+                        <thead class="border-bottom border-secondary">
+                            <tr class="text-uppercase small text-secondary">
+                                <th style="width:200px;">Código</th>
+                                <th>Descripción perfil equivalente</th>
+                                <th style="width:60px;"></th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tablaEquivalencias">
+                            <tr class="filaEquivalencia">
+                                <td>
+                                    <input type="text"
+                                           name="equivalenciasCodigo"
+                                           class="form-control form-control-sm codigoEquivalente"
+                                           placeholder="Código perfil" />
+                                </td>
+
+                                <td>
+                                    <input type="text"
+                                           name="equivalenciasDescripcion"
+                                           class="form-control form-control-sm descripcionEquivalente"
+                                           readonly />
+                                </td>
+
+                                <td class="text-center">
+                                    <button type="button"
+                                            class="btn btn-success btn-sm"
+                                            onclick="agregarEquivalencia()">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 justify-content-end">
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                Cancelar
+            </a>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check2-circle me-1"></i> Guardar
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const pesoMetro = document.getElementById("PesoXmetro");
+            const largoTira = document.getElementById("LongTiraMts");
+            const pesoTira = document.getElementById("PesoXtira");
+
+            function calcularPesoTira() {
+                const p = parseFloat(pesoMetro.value) || 0;
+                const l = parseFloat(largoTira.value) || 0;
+                pesoTira.value = (p * l).toFixed(2);
+            }
+
+            pesoMetro?.addEventListener("input", calcularPesoTira);
+            largoTira?.addEventListener("input", calcularPesoTira);
+        });
+
+
+        document.getElementById("archivoImagen")?.addEventListener("change", function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+
+            reader.onload = function (ev) {
+                document.getElementById("previewImagen").src = ev.target.result;
+            };
+
+            reader.readAsDataURL(file);
+        });
+
+
+        document.getElementById("ProveedorFiltro")?.addEventListener("change", async function () {
+            const proveedorId = this.value;
+            const lineaSelect = document.getElementById("LineaRef");
+
+            lineaSelect.innerHTML = `<option value="">Seleccionar línea...</option>`;
+
+            if (!proveedorId) return;
+
+            try {
+
+                const resp = await fetch(`/Perfiles/GetLineasPorProveedor?proveedorId=${proveedorId}`);
+                const data = await resp.json();
+
+                data.forEach(linea => {
+
+                    const option = document.createElement("option");
+                    option.value = linea.value;
+                    option.textContent = linea.text;
+
+                    lineaSelect.appendChild(option);
+
+                });
+
+            } catch (e) {
+                console.error("Error cargando líneas", e);
+            }
+        });
+
+        document.addEventListener("input", async function (e) {
+            if (!e.target.classList.contains("codigoEquivalente"))
+                return;
+
+            const codigo = e.target.value;
+            const fila = e.target.closest("tr");
+            const descripcionInput = fila.querySelector(".descripcionEquivalente");
+
+            if (!codigo) {
+                descripcionInput.value = "";
+                return;
+            }
+
+            try {
+
+                const resp = await fetch(`/Perfiles/GetPerfilPorCodigo?codigo=${codigo}`);
+                const data = await resp.json();
+
+                if (data) {
+                    descripcionInput.value = data.descripcion;
+                }
+                else {
+                    descripcionInput.value = "Perfil no encontrado";
+                }
+
+            } catch (error) {
+                console.error(error);
+            }
+        });
+
+        function agregarEquivalencia() {
+
+            const tabla = document.getElementById("tablaEquivalencias");
+
+            const fila = document.createElement("tr");
+
+            fila.innerHTML = `
+                <td>
+                    <input type="text"
+                           name="equivalenciasCodigo"
+                           class="form-control form-control-sm codigoEquivalente"
+                           placeholder="Código perfil" />
+                </td>
+
+                <td>
+                    <input type="text"
+                           name="equivalenciasDescripcion"
+                           class="form-control form-control-sm descripcionEquivalente"
+                           readonly />
+                </td>
+
+                <td class="text-center">
+                    <button type="button"
+                            class="btn btn-danger btn-sm"
+                            onclick="this.closest('tr').remove()">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </td>
+            `;
+
+            tabla.appendChild(fila);
+        }
+    </script>
+}

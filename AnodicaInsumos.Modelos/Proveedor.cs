@@ -15,7 +15,7 @@ namespace AnodicaInsumos.Modelos
         [Required(ErrorMessage = "El nombre es requerido")]
         [MaxLength(300, ErrorMessage = "El nombre no puede superar los 300 caracteres")]
         [Display(Name = "Nombre del Proveedor")]
-        public string ProveedorNombre { get; set; } = string.Empty;
+        public string ProveedorNombre { get; set; }
 
         [MaxLength(300, ErrorMessage = "El telefono no puede superar los 300 caracteres")]
         [Display(Name = "Telefono del Proveedor")]

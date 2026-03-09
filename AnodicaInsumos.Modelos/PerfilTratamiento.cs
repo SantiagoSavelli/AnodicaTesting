@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -18,20 +19,23 @@ namespace AnodicaInsumos.Modelos
         public short TratamientoRef { get; set; }
 
         [Required(ErrorMessage = "Cantidad de tiras obligatoria")]
-        public short CantMinTirasStock { get; set; }
+        public short CantMinimaTirasStock { get; set; }
 
         [Required(ErrorMessage = "Cantidad de stock obligatorio")]
-        public short CantStock { get; set; }
+        public short CantidadStock { get; set; }
 
-        public short UbicacionRef { get; set; }
+        public short? UbicacionRef { get; set; }
 
         [ForeignKey("PerfilRef")]
+        [ValidateNever]
         public Perfil? Perfil { get; set; }
         
         [ForeignKey("TratamientoRef")]
+        [ValidateNever]
         public Tratamiento? Tratamiento { get; set; }
 
         [ForeignKey("UbicacionRef")]
+        [ValidateNever]
         public Ubicacion? Ubicacion { get; set; }
     }
 }

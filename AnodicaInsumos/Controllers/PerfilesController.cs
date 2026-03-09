@@ -29,17 +29,87 @@ namespace AnodicaInsumos.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Perfil perfil)
+        public IActionResult Create(Perfil perfil, IFormFile? archivoImagen, List<byte>? tratamientoIds, 
+            List<short?>? ubicacionesTratamiento, List<decimal>? stockMinimo, List<string>? equivalenciasCodigo,List<string>? equivalenciasDescripcion)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _contenedorTrabajo.Perfil.Add(perfil);
-                _contenedorTrabajo.Save();
-                return RedirectToAction(nameof(Index));
+                var errores = ModelState
+                    .Where(x => x.Value.Errors.Count > 0)
+                    .Select(x => new
+                    {
+                        Campo = x.Key,
+                        Errores = x.Value.Errors.Select(e => e.ErrorMessage).ToList()
+                    })
+                    .ToList();
+
+                CargarCombos();
+                return View(perfil);
             }
 
-            CargarCombos();
-            return View(perfil);
+            var existeCodigo = _contenedorTrabajo.Perfil.GetFirstOrDefault(x => x.PerfilCodigoAlcemar == perfil.PerfilCodigoAlcemar);
+
+            if (existeCodigo != null)
+            {
+                ModelState.AddModelError("PerfilCodigoAlcemar", "Ya existe un perfil con ese código.");
+                CargarCombos();
+                return View(perfil);
+            }
+
+            // IMAGEN
+            if (archivoImagen != null && archivoImagen.Length > 0)
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    archivoImagen.CopyTo(memoryStream);
+                    perfil.ImagenPerfil = memoryStream.ToArray();
+                }
+            }
+
+            _contenedorTrabajo.Perfil.Add(perfil);
+            _contenedorTrabajo.Save();
+
+            if (tratamientoIds != null)
+            {
+                for (int i = 0; i < tratamientoIds.Count; i++)
+                {
+                    var detalle = new PerfilTratamiento
+                    {
+                        PerfilRef = perfil.PerfilID,
+                        TratamientoRef = tratamientoIds[i],
+                        UbicacionRef = (ubicacionesTratamiento != null && ubicacionesTratamiento.Count > i && ubicacionesTratamiento[i] > 0)
+                                            ? ubicacionesTratamiento[i]
+                                            : null,
+                        CantMinimaTirasStock = (stockMinimo != null && stockMinimo.Count > i)
+                                            ? Convert.ToInt16(stockMinimo[i])
+                                            : (short)0,
+                        CantidadStock = 0
+                    };
+
+                    _contenedorTrabajo.PerfilTratamiento.Add(detalle);
+                }
+            }
+
+            if (equivalenciasCodigo != null)
+            {
+                for (int i = 0; i < equivalenciasCodigo.Count; i++)
+                {
+                    if (int.TryParse(equivalenciasCodigo[i], out int codigo))
+                    {
+                        var eq = new PerfilEquivalencia
+                        {
+                            PerfilRef = perfil.PerfilID,
+                            PerfilEquivalenteRef = codigo
+                        };
+
+                        _contenedorTrabajo.PerfilEquivalencia.Add(eq);
+                    }
+                }
+            }
+
+            _contenedorTrabajo.Save();
+
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
@@ -96,7 +166,14 @@ namespace AnodicaInsumos.Controllers
 
         private void CargarCombos()
         {
-            ViewBag.Lineas = _contenedorTrabajo.Linea.GetAll()
+            ViewBag.Proveedores = _contenedorTrabajo.Proveedor.GetAll()
+                .Select(x => new SelectListItem
+                {
+                    Text = x.ProveedorNombre,
+                    Value = x.ProveedorID.ToString()
+                }).ToList();
+
+            ViewBag.Lineas = _contenedorTrabajo.Linea.GetAll(includeProperties: "Proveedor")
                 .Select(x => new SelectListItem
                 {
                     Text = x.LineaNombre,
@@ -108,6 +185,13 @@ namespace AnodicaInsumos.Controllers
                 {
                     Text = x.UbicacionCodigo,
                     Value = x.UbicacionID.ToString()
+                }).ToList();
+
+            ViewBag.Tratamientos = _contenedorTrabajo.Tratamiento.GetAll()
+                .Select(x => new SelectListItem
+                {
+                    Text = x.TratamientoNombre,
+                    Value = x.TratamientoID.ToString()
                 }).ToList();
         }
 
@@ -160,6 +244,56 @@ namespace AnodicaInsumos.Controllers
             return Json(new { data, total, page, pageSize });
         }
 
+        [HttpGet]
+        public IActionResult GetLineasPorProveedor(int proveedorId)
+        {
+            var lineas = _contenedorTrabajo.Linea.GetAll()
+                .Where(x => x.ProveedorRef == proveedorId)
+                .Select(x => new
+                {
+                    value = x.LineaID,
+                    text = x.LineaNombre
+                })
+                .ToList();
+
+            return Json(lineas);
+        }
+
+        [HttpGet]
+        public IActionResult GetPerfilPorCodigo(string codigo)
+        {
+            if (string.IsNullOrWhiteSpace(codigo))
+                return Json(null);
+
+            var perfil = _contenedorTrabajo.Perfil
+                .GetFirstOrDefault(p => p.PerfilCodigoAlcemar == codigo);
+
+            if (perfil == null)
+                return Json(null);
+
+            return Json(new
+            {
+                codigo = perfil.PerfilCodigoAlcemar,
+                descripcion = perfil.Descripcion,
+                id = perfil.PerfilID
+            });
+        }
+
+        [HttpDelete]
+        public IActionResult Delete(int id)
+        {
+            var objFromDb = _contenedorTrabajo.Perfil.Get(id);
+
+            if (objFromDb == null)
+            {
+                return Json(new { success = false, message = "Error: no se encontró el perfil." });
+            }
+
+            _contenedorTrabajo.Perfil.Remove(objFromDb);
+            _contenedorTrabajo.Save();
+
+            return Json(new { success = true, message = "Perfil borrado correctamente." });
+        }
         #endregion
     }
 }
