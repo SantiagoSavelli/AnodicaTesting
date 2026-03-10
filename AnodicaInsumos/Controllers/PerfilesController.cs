@@ -93,15 +93,21 @@ namespace AnodicaInsumos.Controllers
             {
                 for (int i = 0; i < equivalenciasCodigo.Count; i++)
                 {
-                    if (int.TryParse(equivalenciasCodigo[i], out int codigo))
+                    if (!string.IsNullOrWhiteSpace(equivalenciasCodigo[i]))
                     {
-                        var eq = new PerfilEquivalencia
-                        {
-                            PerfilRef = perfil.PerfilID,
-                            PerfilEquivalenteRef = codigo
-                        };
+                        var perfilEquivalente = _contenedorTrabajo.Perfil
+                            .GetFirstOrDefault(x => x.PerfilCodigoAlcemar == equivalenciasCodigo[i]);
 
-                        _contenedorTrabajo.PerfilEquivalencia.Add(eq);
+                        if (perfilEquivalente != null)
+                        {
+                            var eq = new PerfilEquivalencia
+                            {
+                                PerfilRef = perfil.PerfilID,
+                                PerfilEquivalenteRef = perfilEquivalente.PerfilID
+                            };
+
+                            _contenedorTrabajo.PerfilEquivalencia.Add(eq);
+                        }
                     }
                 }
             }
@@ -414,14 +420,40 @@ namespace AnodicaInsumos.Controllers
         [HttpDelete]
         public IActionResult Delete(int id)
         {
-            var objFromDb = _contenedorTrabajo.Perfil.Get(id);
-
-            if (objFromDb == null)
+            var perfil = _contenedorTrabajo.Perfil.Get(id);
+            if (perfil == null)
             {
                 return Json(new { success = false, message = "Error: no se encontró el perfil." });
             }
 
-            _contenedorTrabajo.Perfil.Remove(objFromDb);
+            var tratamientos = _contenedorTrabajo.PerfilTratamiento.GetAll()
+                .Where(x => x.PerfilRef == id)
+                .ToList();
+
+            foreach (var item in tratamientos)
+            {
+                _contenedorTrabajo.PerfilTratamiento.Remove(item);
+            }
+
+            var equivalenciasComoPerfil = _contenedorTrabajo.PerfilEquivalencia.GetAll()
+                .Where(x => x.PerfilRef == id)
+                .ToList();
+
+            foreach (var item in equivalenciasComoPerfil)
+            {
+                _contenedorTrabajo.PerfilEquivalencia.Remove(item);
+            }
+
+            var equivalenciasComoEquivalente = _contenedorTrabajo.PerfilEquivalencia.GetAll()
+                .Where(x => x.PerfilEquivalenteRef == id)
+                .ToList();
+
+            foreach (var item in equivalenciasComoEquivalente)
+            {
+                _contenedorTrabajo.PerfilEquivalencia.Remove(item);
+            }
+
+            _contenedorTrabajo.Perfil.Remove(perfil);
             _contenedorTrabajo.Save();
 
             return Json(new { success = true, message = "Perfil borrado correctamente." });
