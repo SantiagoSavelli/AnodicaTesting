@@ -34,13 +34,16 @@ namespace AnodicaInsumos.Modelos
         public string Descripcion { get; set; }
 
         [Required(ErrorMessage = "El peso por metro es obligatorio.")]
+        [Range(0, 100, ErrorMessage = "El valor debe estar entre 0 y 100")]
         [Column(TypeName = "decimal(4, 2)")]
         public decimal PesoXmetro { get; set; }
 
         [Required(ErrorMessage = "La Longitud de las tiras es obligatoria.")]
+        [Range(0, 100, ErrorMessage = "El valor debe estar entre 0 y 100")]
         [Column(TypeName = "decimal(4, 2)")]
         public decimal LongTiraMts { get; set; }
 
+        [Range(0, 100, ErrorMessage = "El valor debe estar entre 0 y 100")]
         [Column(TypeName = "decimal(4, 2)")]
         public decimal? PesoXtira { get; set; }
 

@@ -2,12 +2,14 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
-    ViewData["Title"] = "Nuevo Perfil";
+    ViewData["Title"] = "Editar Perfil";
 
     var proveedores = ViewBag.Proveedores as List<SelectListItem> ?? new();
     var lineas = ViewBag.Lineas as List<SelectListItem> ?? new();
     var ubicaciones = ViewBag.Ubicaciones as List<SelectListItem> ?? new();
     var tratamientos = ViewBag.Tratamientos as List<SelectListItem> ?? new();
+    var perfilTratamientos = ViewBag.PerfilTratamientos as IEnumerable<dynamic> ?? new List<dynamic>();
+    var perfilEquivalencias = ViewBag.PerfilEquivalencias as IEnumerable<dynamic> ?? new List<dynamic>();
 }
 
 <div class="container py-4">
@@ -15,8 +17,8 @@
     <div class="card shadow-sm border-0 mb-3">
         <div class="card-body d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div>
-                <h2 class="mb-1 fw-bold">Nuevo Perfil</h2>
-                <div class="text-secondary">Completá los datos generales, imagen y stock mínimo por tratamiento.</div>
+                <h2 class="mb-1 fw-bold">Editar Perfil</h2>
+                <div class="text-secondary">Modificá los datos generales, imagen, tratamientos y equivalencias.</div>
             </div>
 
             <a asp-action="Index" class="btn btn-outline-light">
@@ -25,10 +27,11 @@
         </div>
     </div>
 
-    <form asp-action="Create" method="post" enctype="multipart/form-data">
+    <form asp-action="Edit" method="post" enctype="multipart/form-data">
         @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="PerfilID" />
 
-        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body">
@@ -70,33 +73,46 @@
                     <div class="col-md-6">
                         <label class="form-label text-secondary small">Forma</label>
                         <input type="file" name="archivoImagen" id="archivoImagen" class="form-control" accept="image/*" />
-                        <small class="text-secondary">Podés cargar una imagen del perfil.</small>
+                        <small class="text-secondary">Si seleccionás una nueva imagen, reemplazará la actual.</small>
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label text-secondary small d-block">Vista previa</label>
                         <div class="border border-secondary rounded bg-dark-subtle d-flex align-items-center justify-content-center"
                              style="height:110px;">
-                            <img id="previewImagen"
-                                 src="https://placehold.co/100x70?text=Sin+imagen"
-                                 alt="Vista previa"
-                                 style="max-height:90px; max-width:100%; object-fit:contain;" />
+                            @if (Model.ImagenPerfil != null && Model.ImagenPerfil.Length > 0)
+                            {
+                                <img id="previewImagen"
+                                     src="data:image/png;base64,@Convert.ToBase64String(Model.ImagenPerfil)"
+                                     alt="Vista previa"
+                                     style="max-height:90px; max-width:100%; object-fit:contain;" />
+                            }
+                            else
+                            {
+                                <img id="previewImagen"
+                                     src="https://placehold.co/100x70?text=Sin+imagen"
+                                     alt="Vista previa"
+                                     style="max-height:90px; max-width:100%; object-fit:contain;" />
+                            }
                         </div>
                     </div>
 
                     <div class="col-md-3">
                         <label asp-for="PesoXmetro" class="form-label text-secondary small">Peso/metro</label>
                         <input asp-for="PesoXmetro" type="number" step="0.01" min="0" class="form-control" id="PesoXmetro" />
+                        <span asp-validation-for="PesoXmetro" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-3">
                         <label asp-for="LongTiraMts" class="form-label text-secondary small">Mts longitud tira</label>
                         <input asp-for="LongTiraMts" type="number" step="0.01" min="0" class="form-control" id="LongTiraMts" />
+                        <span asp-validation-for="LongTiraMts" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-3">
                         <label asp-for="CantTirasPaquete" class="form-label text-secondary small">Tiras/paquete</label>
                         <input asp-for="CantTirasPaquete" type="number" min="0" class="form-control" />
+                        <span asp-validation-for="CantTirasPaquete" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-3 d-flex align-items-end">
@@ -109,6 +125,7 @@
                     <div class="col-md-3">
                         <label asp-for="PesoXtira" class="form-label text-secondary small">Peso/tira</label>
                         <input asp-for="PesoXtira" type="number" step="0.01" min="0" class="form-control" />
+                        <span asp-validation-for="PesoXtira" class="text-danger"></span>
                     </div>
                 </div>
             </div>
@@ -131,6 +148,8 @@
                         <tbody>
                             @foreach (var tratamiento in tratamientos)
                             {
+                                var detalle = perfilTratamientos.FirstOrDefault(x => x.TratamientoRef.ToString() == tratamiento.Value);
+
                                 <tr>
                                     <td>
                                         @tratamiento.Text
@@ -142,7 +161,14 @@
                                             <option value="">Sin especificar</option>
                                             @foreach (var ubicacion in ubicaciones)
                                             {
-                                                <option value="@ubicacion.Value">@ubicacion.Text</option>
+                                                if (detalle != null && detalle.UbicacionRef != null && detalle.UbicacionRef.ToString() == ubicacion.Value)
+                                                {
+                                                    <option value="@ubicacion.Value" selected>@ubicacion.Text</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@ubicacion.Value">@ubicacion.Text</option>
+                                                }
                                             }
                                         </select>
                                     </td>
@@ -152,7 +178,7 @@
                                                name="stockMinimo"
                                                class="form-control form-control-sm"
                                                min="0"
-                                               value="0" />
+                                               value="@(detalle != null ? detalle.CantMinimaTirasStock : 0)" />
                                     </td>
                                 </tr>
                             }
@@ -179,29 +205,78 @@
                         </thead>
 
                         <tbody id="tablaEquivalencias">
-                            <tr class="filaEquivalencia">
-                                <td>
-                                    <input type="text"
-                                           name="equivalenciasCodigo"
-                                           class="form-control form-control-sm codigoEquivalente"
-                                           placeholder="Código perfil" />
-                                </td>
+                            @if (perfilEquivalencias.Any())
+                            {
+                                var primera = true;
 
-                                <td>
-                                    <input type="text"
-                                           name="equivalenciasDescripcion"
-                                           class="form-control form-control-sm descripcionEquivalente"
-                                           readonly />
-                                </td>
+                                foreach (var eq in perfilEquivalencias)
+                                {
+                                    <tr>
+                                        <td>
+                                            <input type="text"
+                                                   name="equivalenciasCodigo"
+                                                   class="form-control form-control-sm codigoEquivalente"
+                                                   placeholder="Código perfil"
+                                                   value="@eq.Codigo" />
+                                        </td>
 
-                                <td class="text-center">
-                                    <button type="button"
-                                            class="btn btn-success btn-sm"
-                                            onclick="agregarEquivalencia()">
-                                        <i class="bi bi-plus-lg"></i>
-                                    </button>
-                                </td>
-                            </tr>
+                                        <td>
+                                            <input type="text"
+                                                   name="equivalenciasDescripcion"
+                                                   class="form-control form-control-sm descripcionEquivalente"
+                                                   readonly
+                                                   value="@eq.Descripcion" />
+                                        </td>
+
+                                        <td class="text-center">
+                                            @if (primera)
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-success btn-sm"
+                                                        onclick="agregarEquivalencia()">
+                                                    <i class="bi bi-plus-lg"></i>
+                                                </button>
+
+                                                primera = false;
+                                            }
+                                            else
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-danger btn-sm"
+                                                        onclick="this.closest('tr').remove()">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td>
+                                        <input type="text"
+                                               name="equivalenciasCodigo"
+                                               class="form-control form-control-sm codigoEquivalente"
+                                               placeholder="Código perfil" />
+                                    </td>
+
+                                    <td>
+                                        <input type="text"
+                                               name="equivalenciasDescripcion"
+                                               class="form-control form-control-sm descripcionEquivalente"
+                                               readonly />
+                                    </td>
+
+                                    <td class="text-center">
+                                        <button type="button"
+                                                class="btn btn-success btn-sm"
+                                                onclick="agregarEquivalencia()">
+                                            <i class="bi bi-plus-lg"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
                         </tbody>
 
                     </table>
@@ -216,7 +291,7 @@
             </a>
 
             <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check2-circle me-1"></i> Guardar
+                <i class="bi bi-check2-circle me-1"></i> Guardar cambios
             </button>
         </div>
 
@@ -227,8 +302,42 @@
 @section Scripts {
 
     <partial name="_ValidationScriptsPartial" />
+
     <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            document.addEventListener("input", async function (e) {
+
+                if (!e.target.classList.contains("codigoEquivalente"))
+                    return;
+
+                const codigo = e.target.value;
+                const fila = e.target.closest("tr");
+                const descripcionInput = fila.querySelector(".descripcionEquivalente");
+
+                if (!codigo) {
+                    descripcionInput.value = "";
+                    return;
+                }
+
+                try {
+                    const resp = await fetch(`/Perfiles/GetPerfilPorCodigo?codigo=${codigo}`);
+                    const data = await resp.json();
+
+                    if (data) {
+                        descripcionInput.value = data.descripcion;
+                    } else {
+                        descripcionInput.value = "Perfil no encontrado";
+                    }
+
+                } catch (error) {
+                    console.error(error);
+                }
+            });
+
+        });
+
         document.getElementById("archivoImagen")?.addEventListener("change", function (e) {
+
             const file = e.target.files[0];
             if (!file) return;
 
@@ -239,10 +348,11 @@
             };
 
             reader.readAsDataURL(file);
+
         });
 
-
         document.getElementById("ProveedorFiltro")?.addEventListener("change", async function () {
+
             const proveedorId = this.value;
             const lineaSelect = document.getElementById("LineaRef");
 
@@ -268,36 +378,7 @@
             } catch (e) {
                 console.error("Error cargando líneas", e);
             }
-        });
 
-        document.addEventListener("input", async function (e) {
-            if (!e.target.classList.contains("codigoEquivalente"))
-                return;
-
-            const codigo = e.target.value;
-            const fila = e.target.closest("tr");
-            const descripcionInput = fila.querySelector(".descripcionEquivalente");
-
-            if (!codigo) {
-                descripcionInput.value = "";
-                return;
-            }
-
-            try {
-
-                const resp = await fetch(`/Perfiles/GetPerfilPorCodigo?codigo=${codigo}`);
-                const data = await resp.json();
-
-                if (data) {
-                    descripcionInput.value = data.descripcion;
-                }
-                else {
-                    descripcionInput.value = "Perfil no encontrado";
-                }
-
-            } catch (error) {
-                console.error(error);
-            }
         });
 
         function agregarEquivalencia() {
@@ -331,6 +412,7 @@
             `;
 
             tabla.appendChild(fila);
+
         }
     </script>
 }
