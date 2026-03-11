@@ -168,8 +168,11 @@ namespace AnodicaInsumos.Controllers
                 .Where(x => x.PerfilRef == id)
                 .Select(x => new
                 {
-                    Codigo = x.PerfilEquivalenteRef.ToString(),
-                    Descripcion = _contenedorTrabajo.Perfil.GetFirstOrDefault(p => p.PerfilID == x.PerfilEquivalenteRef)?.Descripcion ?? ""
+                    Codigo = _contenedorTrabajo.Perfil
+                        .GetFirstOrDefault(p => p.PerfilID == x.PerfilEquivalenteRef)?.PerfilCodigoAlcemar ?? "",
+
+                    Descripcion = _contenedorTrabajo.Perfil
+                        .GetFirstOrDefault(p => p.PerfilID == x.PerfilEquivalenteRef)?.Descripcion ?? ""
                 })
                 .ToList();
 
@@ -283,18 +286,33 @@ namespace AnodicaInsumos.Controllers
 
             if (equivalenciasCodigo != null)
             {
+                var equivalentesAgregados = new HashSet<int>();
+
                 for (int i = 0; i < equivalenciasCodigo.Count; i++)
                 {
-                    if (int.TryParse(equivalenciasCodigo[i], out int codigo))
-                    {
-                        var eq = new PerfilEquivalencia
-                        {
-                            PerfilRef = perfilDb.PerfilID,
-                            PerfilEquivalenteRef = codigo
-                        };
+                    var codigoEquivalente = equivalenciasCodigo[i]?.Trim();
 
-                        _contenedorTrabajo.PerfilEquivalencia.Add(eq);
-                    }
+                    if (string.IsNullOrWhiteSpace(codigoEquivalente))
+                        continue;
+
+                    var perfilEquivalente = _contenedorTrabajo.Perfil
+                        .GetFirstOrDefault(x => x.PerfilCodigoAlcemar == codigoEquivalente);
+
+                    if (perfilEquivalente == null)
+                        continue;
+                    if (perfilEquivalente.PerfilID == perfilDb.PerfilID)
+                        continue;
+                    if (equivalentesAgregados.Contains(perfilEquivalente.PerfilID))
+                        continue;
+
+                    equivalentesAgregados.Add(perfilEquivalente.PerfilID);
+
+                    var eq = new PerfilEquivalencia
+                    {
+                        PerfilRef = perfilDb.PerfilID,
+                        PerfilEquivalenteRef = perfilEquivalente.PerfilID
+                    };
+                    _contenedorTrabajo.PerfilEquivalencia.Add(eq);
                 }
             }
             _contenedorTrabajo.Save();
