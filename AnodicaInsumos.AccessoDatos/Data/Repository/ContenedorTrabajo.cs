@@ -25,6 +25,7 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
             Ubicacion = new UbicacionRepository(_db);
             PerfilTratamiento = new PerfilTratamientoRepository(_db);
             Tratamiento = new TratamientoRepository(_db);
+            LineaGrupoTratamiento = new LineaGrupoTratamientoRepository(_db);
         }
 
         public IInsumosRepository Insumo {  get; private set; }
@@ -38,6 +39,7 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
         public IUbicacionRepository Ubicacion { get; private set; }
         public IPerfilTratamientoRepository PerfilTratamiento { get; private set; }
         public ITratamientoRepository Tratamiento { get; private set; }
+        public ILineaGrupoTratamientoRepository LineaGrupoTratamiento { get; private set; }
 
         public void Dispose()
         {

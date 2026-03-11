@@ -26,5 +26,6 @@ namespace AnodicaInsumos.AccessoDatos.Data
         public DbSet<Ubicacion> Ubicacion { get; set; }
         public DbSet<Tratamiento> Tratamiento { get; set; }
         public DbSet<PerfilTratamiento> PerfilTratamiento { get; set; }
+        public DbSet<LineaGrupoTratamiento> LineaGrupoTratamiento { get; set; }
     }
 }

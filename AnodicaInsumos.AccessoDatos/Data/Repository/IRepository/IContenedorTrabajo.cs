@@ -20,6 +20,7 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository.IRepository
         IUbicacionRepository Ubicacion { get; }
         IPerfilTratamientoRepository PerfilTratamiento { get; }
         ITratamientoRepository Tratamiento { get; }
+        ILineaGrupoTratamientoRepository LineaGrupoTratamiento { get; }
         void Save();
     }
 }
