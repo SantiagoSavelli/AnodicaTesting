@@ -184,6 +184,7 @@ namespace AnodicaInsumos.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        // Aplicar VM para evitar tantos parámetros o usar un DTO específico para la edición
         public IActionResult Edit(int id, Perfil perfil, IFormFile? archivoImagen, List<short>? tratamientoIds, List<short?>? ubicacionesTratamiento, 
             List<decimal>? stockMinimo, List<string>? equivalenciasCodigo, List<string>? equivalenciasDescripcion)
         {

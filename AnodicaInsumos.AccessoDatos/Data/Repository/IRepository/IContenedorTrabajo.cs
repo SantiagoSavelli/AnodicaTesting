@@ -21,6 +21,8 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository.IRepository
         IPerfilTratamientoRepository PerfilTratamiento { get; }
         ITratamientoRepository Tratamiento { get; }
         ILineaGrupoTratamientoRepository LineaGrupoTratamiento { get; }
+
+        // Usar el save de modo asincronico para evitar bloqueos en la interfaz de usuario
         void Save();
     }
 }
