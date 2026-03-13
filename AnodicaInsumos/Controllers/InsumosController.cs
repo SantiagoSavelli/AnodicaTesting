@@ -87,7 +87,6 @@ namespace AnodicaInsumos.Controllers
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 10;
 
-            // Ideal: que GetAll devuelva IQueryable; si devuelve IEnumerable, igual funciona pero menos eficiente.
             var query = _contenedorTrabajo.Insumo.GetAll().AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(codigo))

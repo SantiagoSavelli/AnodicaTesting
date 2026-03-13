@@ -24,5 +24,6 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository.IRepository
 
         // Usar el save de modo asincronico para evitar bloqueos en la interfaz de usuario
         void Save();
+        Task SaveAsync();
     }
 }

@@ -28,7 +28,7 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
             LineaGrupoTratamiento = new LineaGrupoTratamientoRepository(_db);
         }
 
-        public IInsumosRepository Insumo {  get; private set; }
+        public IInsumosRepository Insumo { get; private set; }
         public IProveedorRepository Proveedor { get; private set; }
         public ITipoProveedorRepository TipoProveedor { get; private set; }
         public IProveedorTipoProveedorRepository ProveedorTipoProveedor { get; private set; }
@@ -50,6 +50,11 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
         public void Save()
         {
             _db.SaveChanges();
+        }
+
+        public async Task SaveAsync()
+        {
+            await _db.SaveChangesAsync();
         }
     }
 }

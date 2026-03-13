@@ -12,6 +12,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<IContenedorTrabajo, ContenedorTrabajo>();
 builder.Services.AddScoped<IInsumosRepository, InsumosRepository>();
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddControllersWithViews();

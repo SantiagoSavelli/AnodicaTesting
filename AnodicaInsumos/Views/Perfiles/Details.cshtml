@@ -1,10 +1,11 @@
-﻿@model AnodicaInsumos.Modelos.Perfil
+﻿@model AnodicaInsumos.Modelos.ViewModels.PerfilVM
+@using AnodicaInsumos.Modelos
 
 @{
     ViewData["Title"] = "Detalle de Perfil";
 
-    var perfilTratamientos = ViewBag.PerfilTratamientos as IEnumerable<dynamic> ?? new List<dynamic>();
-    var perfilEquivalencias = ViewBag.PerfilEquivalencias as IEnumerable<dynamic> ?? new List<dynamic>();
+    var perfilTratamientos = Model.PerfilTratamientos ?? new List<PerfilTratamiento>();
+    var perfilEquivalencias = Model.PerfilEquivalencias ?? new List<dynamic>();
 }
 
 <div class="container py-4">
@@ -17,7 +18,7 @@
             </div>
 
             <div class="d-flex gap-2">
-                <a asp-action="Edit" asp-route-id="@Model.PerfilID" class="btn btn-warning">
+                <a asp-action="Edit" asp-route-id="@Model.Perfil.PerfilID" class="btn btn-warning">
                     <i class="bi bi-pencil me-1"></i> Editar
                 </a>
                 <a asp-action="Index" class="btn btn-outline-light">
@@ -35,31 +36,31 @@
 
                 <div class="col-md-3">
                     <label class="form-label text-secondary small">Código</label>
-                    <input class="form-control" value="@Model.PerfilCodigoAlcemar" readonly />
+                    <input class="form-control" value="@Model.Perfil.PerfilCodigoAlcemar" readonly />
                 </div>
 
                 <div class="col-md-4">
                     <label class="form-label text-secondary small">Proveedor</label>
-                    <input class="form-control" value="@(Model.Linea?.Proveedor?.ProveedorNombre ?? "")" readonly />
+                    <input class="form-control" value="@(Model.Perfil.Linea?.Proveedor?.ProveedorNombre ?? "")" readonly />
                 </div>
 
                 <div class="col-md-5">
                     <label class="form-label text-secondary small">Línea</label>
-                    <input class="form-control" value="@(Model.Linea?.LineaNombre ?? "")" readonly />
+                    <input class="form-control" value="@(Model.Perfil.Linea?.LineaNombre ?? "")" readonly />
                 </div>
 
                 <div class="col-12">
                     <label class="form-label text-secondary small">Descripción</label>
-                    <input class="form-control" value="@Model.Descripcion" readonly />
+                    <input class="form-control" value="@Model.Perfil.Descripcion" readonly />
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label text-secondary small">Forma</label>
                     <div class="border border-secondary rounded bg-dark-subtle d-flex align-items-center justify-content-center"
                          style="height: 140px;">
-                        @if (Model.ImagenPerfil != null && Model.ImagenPerfil.Length > 0)
+                        @if (Model.Perfil.ImagenPerfil != null && Model.Perfil.ImagenPerfil.Length > 0)
                         {
-                            <img src="data:image/png;base64,@Convert.ToBase64String(Model.ImagenPerfil)"
+                            <img src="data:image/png;base64,@Convert.ToBase64String(Model.Perfil.ImagenPerfil)"
                                  alt="Forma del perfil"
                                  style="max-height: 120px; max-width: 100%; object-fit: contain;" />
                         }
@@ -72,27 +73,27 @@
 
                 <div class="col-md-3">
                     <label class="form-label text-secondary small">Peso/metro</label>
-                    <input class="form-control" value="@Model.PesoXmetro.ToString("0.00")" readonly />
+                    <input class="form-control" value="@Model.Perfil.PesoXmetro.ToString("0.00")" readonly />
                 </div>
 
                 <div class="col-md-3">
                     <label class="form-label text-secondary small">Mts longitud tira</label>
-                    <input class="form-control" value="@Model.LongTiraMts.ToString("0.00")" readonly />
+                    <input class="form-control" value="@Model.Perfil.LongTiraMts.ToString("0.00")" readonly />
                 </div>
 
                 <div class="col-md-3">
                     <label class="form-label text-secondary small">Peso/tira</label>
-                    <input class="form-control" value="@(Model.PesoXtira?.ToString("0.00") ?? "")" readonly />
+                    <input class="form-control" value="@(Model.Perfil.PesoXtira?.ToString("0.00") ?? "")" readonly />
                 </div>
 
                 <div class="col-md-3">
                     <label class="form-label text-secondary small">Tiras/paquete</label>
-                    <input class="form-control" value="@Model.CantTirasPaquete" readonly />
+                    <input class="form-control" value="@Model.Perfil.CantTirasPaquete" readonly />
                 </div>
 
                 <div class="col-md-3">
                     <label class="form-label text-secondary small">Maneja stock propio</label>
-                    <input class="form-control" value="@(Model.ManejaStockPropio ? "Sí" : "No")" readonly />
+                    <input class="form-control" value="@(Model.Perfil.ManejaStockPropio ? "Sí" : "No")" readonly />
                 </div>
             </div>
         </div>
