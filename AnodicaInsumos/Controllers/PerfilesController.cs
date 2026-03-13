@@ -4,6 +4,7 @@ using AnodicaInsumos.Modelos.ViewModels;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Runtime.Intrinsics.X86;
 
 namespace AnodicaInsumos.Controllers
 {
@@ -34,7 +35,7 @@ namespace AnodicaInsumos.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create( PerfilVM vm, List<int> tratamientoIds, List<int?> ubicacionesTratamiento, 
+        public async Task<IActionResult> Create(PerfilVM vm, List<int> tratamientoIds, List<int?> ubicacionesTratamiento,
             List<int> stockMinimo, List<string> equivalenciasCodigo)
         {
             if (!ModelState.IsValid)
@@ -135,9 +136,10 @@ namespace AnodicaInsumos.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
+            //NoTracking
             var perfil = await _contenedorTrabajo.Perfil.GetFirstOrDefaultAsync(
                 x => x.PerfilID == id,
-                includeProperties: "Linea,Ubicacion"
+                includeProperties: "Linea,Ubicacion,Tratamientos"
             );
 
             if (perfil == null)
@@ -156,7 +158,7 @@ namespace AnodicaInsumos.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, PerfilVM vm, List<int> tratamientoIds, List<int?> ubicacionesTratamiento, 
+        public async Task<IActionResult> Edit(int id, PerfilVM vm, List<int> tratamientoIds, List<int?> ubicacionesTratamiento,
             List<int> stockMinimo, List<string> equivalenciasCodigo)
         {
             if (id != vm.Perfil.PerfilID)
@@ -175,6 +177,41 @@ namespace AnodicaInsumos.Controllers
 
             // Mapear datos del perfil
             _mapper.Map(vm.Perfil, perfilDb);
+
+            //Quitar los que ya no van
+            //Agregar los nuevos
+            //Actualizar los modificados
+
+            foreach (var tratamiento in vm.TratamientosV2)
+            {
+                var tdb = perfilDb.Tratamientos?.FirstOrDefault(x => x.TratamientoRef == tratamiento.TratamientoRef);
+                if (tdb != null)
+                {
+                    if (tratamiento.UbicacionRef == 1)
+                    {
+                        perfilDb.Tratamientos.Remove(tdb);
+                    }
+                    else
+                    {
+                        _mapper.Map(tratamiento, tdb);
+                    }
+                }
+                else
+                {
+                    if (tratamiento.UbicacionRef != 1)
+                    {
+                        var nuevo = new PerfilTratamiento
+                        {
+                            PerfilRef = id,
+                            TratamientoRef = tratamiento.TratamientoRef,
+                            UbicacionRef = tratamiento.UbicacionRef,
+                            CantMinimaTirasStock = tratamiento.CantMinimaTirasStock
+                        };
+                        perfilDb.Tratamientos.Add(nuevo);
+                    }
+
+                }
+            }
             perfilDb.UbicacionRef = null;
 
             if (vm.ArchivoImagen != null && vm.ArchivoImagen.Length > 0)
@@ -282,27 +319,46 @@ namespace AnodicaInsumos.Controllers
 
         private async Task CargarDatosEditAsync(PerfilVM vm)
         {
-            var perfilTratamientos = await _contenedorTrabajo.PerfilTratamiento.GetAllAsync();
-            var perfilEquivalencias = await _contenedorTrabajo.PerfilEquivalencia.GetAllAsync();
-            var perfiles = await _contenedorTrabajo.Perfil.GetAllAsync();
-
-            vm.PerfilTratamientos = perfilTratamientos
-                .Where(x => x.PerfilRef == vm.Perfil.PerfilID)
-                .ToList();
-
-            vm.PerfilEquivalencias = perfilEquivalencias
-                .Where(x => x.PerfilRef == vm.Perfil.PerfilID)
-                .Select(x =>
+            if (vm.Perfil.Tratamientos == null)
+                throw new Exception("Error: No se cargaron los tratamientos.");
+            var tratamientos = await _contenedorTrabajo.Tratamiento.GetAllAsync();
+            foreach (var t in tratamientos)
+            {
+                var te = vm.Perfil.Tratamientos.FirstOrDefault(x => x.TratamientoRef == t.TratamientoID);
+                vm.TratamientosV2.Add(new PerfilTratamientoVM
                 {
-                    var perfilEquivalente = perfiles.FirstOrDefault(p => p.PerfilID == x.PerfilEquivalenteRef);
+                    TratamientoRef = t.TratamientoID,
+                    UbicacionRef = te?.UbicacionRef,
+                    CantMinimaTirasStock = te?.CantMinimaTirasStock ?? 0,
+                    CantidadStock = te?.CantidadStock ?? 0,
+                    Descripcion = t.TratamientoNombre
+                });
 
-                    return new
-                    {
-                        Codigo = perfilEquivalente?.PerfilCodigoAlcemar ?? "",
-                        Descripcion = perfilEquivalente?.Descripcion ?? ""
-                    };
-                })
-                .ToList<dynamic>();
+            }
+
+
+
+
+            //var perfilTratamientos = await _contenedorTrabajo.PerfilTratamiento.GetAllAsync();
+            //var perfilEquivalencias = await _contenedorTrabajo.PerfilEquivalencia.GetAllAsync(x => x.PerfilRef == vm.Perfil.PerfilID);
+            //var perfiles = await _contenedorTrabajo.Perfil.GetAllAsync();
+
+            //vm.PerfilTratamientos = perfilTratamientos
+            //    .Where(x => x.PerfilRef == vm.Perfil.PerfilID)
+            //    .ToList();
+            //await _contenedorTrabajo.PerfilEquivalencia.GetAllAsync();
+            //vm.PerfilEquivalencias = perfilEquivalencias
+            //    .Select(x =>
+            //    {
+            //        var perfilEquivalente = perfiles.FirstOrDefault(p => p.PerfilID == x.PerfilEquivalenteRef);
+
+            //        return new
+            //        {
+            //            Codigo = perfilEquivalente?.PerfilCodigoAlcemar ?? "",
+            //            Descripcion = perfilEquivalente?.Descripcion ?? ""
+            //        };
+            //    })
+            //    .ToList<dynamic>();
         }
 
         #region Llamadas a la API

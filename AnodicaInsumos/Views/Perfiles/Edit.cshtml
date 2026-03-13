@@ -142,7 +142,29 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @for (int i = 0; i < tratamientos.Count; i++)
+                            @for (int i = 0; i < Model.TratamientosV2.Count; i++)
+                            {
+
+                                <tr>
+                                    <td>
+                                        @Model.TratamientosV2[i].Descripcion
+
+                                        <input type="hidden" asp-for="TratamientosV2[i].TratamientoRef" />
+                                    </td>
+
+                                    <td>
+                                       <select asp-items="Model.Ubicaciones" asp-for ="TratamientosV2[i].UbicacionRef" class="form-select form-select-sm">
+                                            </select>
+               
+                                    </td>
+
+                                    <td>
+                                        <input asp-for="TratamientosV2[i].CantMinimaTirasStock" class="form-control form-control-sm" />
+                                        
+                                    </td>
+                                </tr>
+                            }
+                          @*   @for (int i = 0; i < tratamientos.Count; i++)
                             {
                                 var detalle = perfilTratamientos.FirstOrDefault(x => x.TratamientoRef.ToString() == tratamientos[i].Value);
 
@@ -177,7 +199,7 @@
                                                value="@(detalle != null ? detalle.CantMinimaTirasStock : 0)" />
                                     </td>
                                 </tr>
-                            }
+                            } *@
                         </tbody>
                     </table>
                 </div>

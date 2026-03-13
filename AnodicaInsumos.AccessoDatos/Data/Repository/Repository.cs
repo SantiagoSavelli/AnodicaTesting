@@ -111,7 +111,7 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
 
         public async Task<T?> GetFirstOrDefaultAsync(
             Expression<Func<T, bool>>? filter = null,
-            string? includeProperties = null
+            string? includeProperties = null//,            bool? noTracking = false
         )
         {
             IQueryable<T> query = dbSet;
@@ -127,7 +127,8 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
                     query = query.Include(includeProperty.Trim());
                 }
             }
-
+            //if (noTracking == true)
+            //    query = query.AsNoTracking();   
             return await query.FirstOrDefaultAsync();
         }
 

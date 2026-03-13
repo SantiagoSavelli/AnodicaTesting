@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 
 namespace AnodicaInsumos.Modelos.ViewModels
 {
@@ -24,6 +25,23 @@ namespace AnodicaInsumos.Modelos.ViewModels
         public List<PerfilTratamiento>? PerfilTratamientos { get; set; }
         public List<dynamic>? PerfilEquivalencias { get; set; }
 
+        public List<PerfilTratamientoVM> TratamientosV2 { get; set; } = new();
         public bool SoloLectura { get; set; } = false;
+    }
+    public class PerfilTratamientoVM 
+    {
+        //public int PerfilTratamientoId { get; set; }
+
+        
+        public short TratamientoRef { get; set; }
+
+        
+        public short CantMinimaTirasStock { get; set; }
+
+        
+        public short CantidadStock { get; set; }
+
+        public short? UbicacionRef { get; set; }
+        public string Descripcion { get; set; } = "";
     }
 }
