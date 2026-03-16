@@ -16,7 +16,8 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository.IRepository
         Task<IEnumerable<T>> GetAllAsync(
             Expression<Func<T, bool>>? filter = null,
             Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
-            string? includeProperties = null
+            string? includeProperties = null,
+            bool? NoTracking = false
         );
 
         T? GetFirstOrDefault(
@@ -26,7 +27,8 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository.IRepository
 
         Task<T?> GetFirstOrDefaultAsync(
             Expression<Func<T, bool>>? filter = null,
-            string? includeProperties = null
+            string? includeProperties = null,
+            bool? NoTracking = false
         );
 
         void Add(T entity);

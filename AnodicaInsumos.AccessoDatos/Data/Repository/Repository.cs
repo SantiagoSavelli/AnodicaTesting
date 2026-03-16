@@ -64,7 +64,8 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
         public async Task<IEnumerable<T>> GetAllAsync(
             Expression<Func<T, bool>>? filter = null,
             Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
-            string? includeProperties = null
+            string? includeProperties = null,
+            bool? NoTracking = false
         )
         {
             IQueryable<T> query = dbSet;
@@ -79,6 +80,11 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
                 {
                     query = query.Include(includeProperty.Trim());
                 }
+            }
+
+            if (NoTracking == true)
+            {
+                query = query.AsNoTracking();
             }
 
             if (orderBy != null)
@@ -111,7 +117,8 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
 
         public async Task<T?> GetFirstOrDefaultAsync(
             Expression<Func<T, bool>>? filter = null,
-            string? includeProperties = null//,            bool? noTracking = false
+            string? includeProperties = null,
+            bool? NoTracking = false
         )
         {
             IQueryable<T> query = dbSet;
@@ -127,8 +134,10 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
                     query = query.Include(includeProperty.Trim());
                 }
             }
-            //if (noTracking == true)
-            //    query = query.AsNoTracking();   
+            if (NoTracking == true)
+            {
+                query = query.AsNoTracking();
+            }
             return await query.FirstOrDefaultAsync();
         }
 

@@ -53,6 +53,6 @@ namespace AnodicaInsumos.Modelos
         [Required]
         public bool ManejaStockPropio { get; set; }
 
-        public ICollection<PerfilTratamiento>? Tratamientos { get; set; }
+        public ICollection<PerfilTratamiento>? Tratamientos { get; set; } = new List<PerfilTratamiento>();
     }
 }

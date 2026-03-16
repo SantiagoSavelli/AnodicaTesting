@@ -1,4 +1,6 @@
 ﻿@model AnodicaInsumos.Modelos.ViewModels.PerfilVM
+@using AnodicaInsumos.Modelos
+@using AnodicaInsumos.Modelos.ViewModels
 @using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
@@ -8,6 +10,8 @@
     var lineas = Model.Lineas ?? new List<SelectListItem>();
     var ubicaciones = Model.Ubicaciones ?? new List<SelectListItem>();
     var tratamientos = Model.Tratamientos ?? new List<SelectListItem>();
+    var perfilTratamientos = Model.PerfilTratamientos ?? new List<PerfilTratamientoVM>();
+    var perfilEquivalencias = Model.PerfilEquivalencias ?? new List<PerfilEquivalenciaVM>();
 }
 
 <div class="container py-4">
@@ -134,37 +138,32 @@
                         </thead>
 
                         <tbody>
-                            @foreach (var tratamiento in tratamientos)
+                            @for (int i = 0; i < Model.PerfilTratamientos.Count; i++)
                             {
+
                                 <tr>
                                     <td>
-                                        @tratamiento.Text
-                                        <input type="hidden" name="tratamientoIds" value="@tratamiento.Value" />
+                                        @Model.PerfilTratamientos[i].Descripcion
+
+                                        <input type="hidden" asp-for="PerfilTratamientos[i].TratamientoRef" />
+                                        <input type="hidden" asp-for="PerfilTratamientos[i].Descripcion" />
                                     </td>
 
                                     <td>
-                                        <select name="ubicacionesTratamiento" class="form-select form-select-sm">
-                                            <option value="">Sin especificar</option>
-                                            @foreach (var ubicacion in ubicaciones)
-                                            {
-                                                <option value="@ubicacion.Value">@ubicacion.Text</option>
-                                            }
+                                        <select asp-items="Model.Ubicaciones" asp-for="PerfilTratamientos[i].UbicacionRef" class="form-select form-select-sm">
+                                            <option value="">Sin ubicación</option>
                                         </select>
                                     </td>
 
                                     <td>
-                                        <input type="number"
-                                               name="stockMinimo"
-                                               class="form-control form-control-sm"
-                                               min="0"
-                                               value="0" />
+                                        <input asp-for="PerfilTratamientos[i].CantMinimaTirasStock" type="number" min="0" class="form-control form-control-sm" />
+
                                     </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
                 </div>
-
             </div>
         </div>
 
@@ -184,34 +183,77 @@
                         </thead>
 
                         <tbody id="tablaEquivalencias">
-                            <tr class="filaEquivalencia">
-                                <td>
-                                    <input type="text"
-                                           name="equivalenciasCodigo"
-                                           class="form-control form-control-sm codigoEquivalente"
-                                           placeholder="Código perfil" />
-                                </td>
+                            @if (Model.PerfilEquivalencias != null && Model.PerfilEquivalencias.Any())
+                            {
+                                for (int i = 0; i < Model.PerfilEquivalencias.Count; i++)
+                                {
+                                    <tr>
+                                        <td>
+                                            <input asp-for="PerfilEquivalencias[i].Codigo"
+                                                   class="form-control form-control-sm codigoEquivalente"
+                                                   placeholder="Código perfil" />
 
-                                <td>
-                                    <input type="text"
-                                           name="equivalenciasDescripcion"
-                                           class="form-control form-control-sm descripcionEquivalente"
-                                           readonly />
-                                </td>
+                                            <input asp-for="PerfilEquivalencias[i].PerfilEquivalenteRef" type="hidden" />
+                                        </td>
 
-                                <td class="text-center">
-                                    <button type="button"
-                                            class="btn btn-success btn-sm"
-                                            onclick="agregarEquivalencia()">
-                                        <i class="bi bi-plus-lg"></i>
-                                    </button>
-                                </td>
-                            </tr>
+                                        <td>
+                                            <input asp-for="PerfilEquivalencias[i].Descripcion"
+                                                   class="form-control form-control-sm descripcionEquivalente"
+                                                   readonly />
+                                        </td>
+
+                                        <td class="text-center">
+                                            @if (i == 0)
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-success btn-sm"
+                                                        onclick="agregarEquivalencia()">
+                                                    <i class="bi bi-plus-lg"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-danger btn-sm"
+                                                        onclick="eliminarFila(this)">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td>
+                                        <input name="PerfilEquivalencias[0].Codigo"
+                                               class="form-control form-control-sm codigoEquivalente"
+                                               placeholder="Código perfil" />
+
+                                        <input name="PerfilEquivalencias[0].PerfilEquivalenteRef"
+                                               type="hidden"
+                                               value="" />
+                                    </td>
+
+                                    <td>
+                                        <input name="PerfilEquivalencias[0].Descripcion"
+                                               class="form-control form-control-sm descripcionEquivalente"
+                                               readonly />
+                                    </td>
+
+                                    <td class="text-center">
+                                        <button type="button"
+                                                class="btn btn-success btn-sm"
+                                                onclick="agregarEquivalencia()">
+                                            <i class="bi bi-plus-lg"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
                         </tbody>
-
                     </table>
                 </div>
-
             </div>
         </div>
 
@@ -301,20 +343,23 @@
 
         function agregarEquivalencia() {
             const tabla = document.getElementById("tablaEquivalencias");
+            const index = tabla.querySelectorAll("tr").length;
 
             const fila = document.createElement("tr");
 
             fila.innerHTML = `
                 <td>
-                    <input type="text"
-                           name="equivalenciasCodigo"
+                    <input name="PerfilEquivalencias[${index}].Codigo"
                            class="form-control form-control-sm codigoEquivalente"
                            placeholder="Código perfil" />
+
+                    <input name="PerfilEquivalencias[${index}].PerfilEquivalenteRef"
+                           type="hidden"
+                           value="" />
                 </td>
 
                 <td>
-                    <input type="text"
-                           name="equivalenciasDescripcion"
+                    <input name="PerfilEquivalencias[${index}].Descripcion"
                            class="form-control form-control-sm descripcionEquivalente"
                            readonly />
                 </td>
@@ -322,13 +367,36 @@
                 <td class="text-center">
                     <button type="button"
                             class="btn btn-danger btn-sm"
-                            onclick="this.closest('tr').remove()">
+                            onclick="eliminarFila(this)">
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </td>
             `;
 
             tabla.appendChild(fila);
+        }
+
+        function eliminarFila(btn) {
+            btn.closest("tr").remove();
+            reindexarEquivalencias();
+        }
+
+        function reindexarEquivalencias() {
+            const filas = document.querySelectorAll("#tablaEquivalencias tr");
+
+            filas.forEach((fila, index) => {
+                fila.querySelectorAll("input").forEach(input => {
+                    if (input.name.includes(".Codigo")) {
+                        input.name = `PerfilEquivalencias[${index}].Codigo`;
+                    }
+                    if (input.name.includes(".Descripcion")) {
+                        input.name = `PerfilEquivalencias[${index}].Descripcion`;
+                    }
+                    if (input.name.includes(".PerfilEquivalenteRef")) {
+                        input.name = `PerfilEquivalencias[${index}].PerfilEquivalenteRef`;
+                    }
+                });
+            });
         }
     </script>
 }

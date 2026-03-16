@@ -1,11 +1,12 @@
 ﻿@model AnodicaInsumos.Modelos.ViewModels.PerfilVM
+@using AnodicaInsumos.Modelos.ViewModels
 @using AnodicaInsumos.Modelos
 
 @{
     ViewData["Title"] = "Detalle de Perfil";
 
-    var perfilTratamientos = Model.PerfilTratamientos ?? new List<PerfilTratamiento>();
-    var perfilEquivalencias = Model.PerfilEquivalencias ?? new List<dynamic>();
+    var perfilTratamientos = Model.PerfilTratamientos ?? new List<PerfilTratamientoVM>();
+    var perfilEquivalencias = Model.PerfilEquivalencias ?? new List<PerfilEquivalenciaVM>();
 }
 
 <div class="container py-4">
