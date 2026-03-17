@@ -1,7 +1,9 @@
 using AnodicaInsumos.AccessoDatos.Data;
 using AnodicaInsumos.AccessoDatos.Data.Repository;
 using AnodicaInsumos.AccessoDatos.Data.Repository.IRepository;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,10 +14,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<IContenedorTrabajo, ContenedorTrabajo>();
 builder.Services.AddScoped<IInsumosRepository, InsumosRepository>();
-builder.Services.AddAutoMapper(typeof(MappingProfile));
-
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddControllersWithViews();
+
+var mapperConfig = new MapperConfiguration(cfg =>
+{
+    cfg.AddProfile<MappingProfile>();
+}, NullLoggerFactory.Instance);
+
+IMapper mapper = mapperConfig.CreateMapper();
+builder.Services.AddSingleton(mapper);
 
 var app = builder.Build();
 

@@ -133,7 +133,6 @@ namespace AnodicaInsumos.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            //NoTracking
             var perfil = await _contenedorTrabajo.Perfil.GetFirstOrDefaultAsync(
                 x => x.PerfilID == id,
                 includeProperties: "Linea,Ubicacion,Tratamientos",
@@ -178,36 +177,6 @@ namespace AnodicaInsumos.Controllers
 
             _mapper.Map(vm.Perfil, perfilDb);
 
-            //foreach (var tratamiento in vm.PerfilTratamientos)
-            //{
-            //    var tdb = perfilDb.Tratamientos?.FirstOrDefault(x => x.TratamientoRef == tratamiento.TratamientoRef);
-            //    if (tdb != null)
-            //    {
-            //        if (tratamiento.UbicacionRef == 1)
-            //        {
-            //            _contenedorTrabajo.PerfilTratamiento.Remove(tdb);
-            //        }
-            //        else
-            //        {
-            //            _mapper.Map(tratamiento, tdb);
-            //        }
-            //    }
-            //    else
-            //    {
-            //        if (tratamiento.UbicacionRef != 1)
-            //        {
-            //            var nuevo = new PerfilTratamiento
-            //            {
-            //                PerfilRef = id,
-            //                TratamientoRef = tratamiento.TratamientoRef,
-            //                UbicacionRef = tratamiento.UbicacionRef,
-            //                CantMinimaTirasStock = tratamiento.CantMinimaTirasStock
-            //            };
-            //            await _contenedorTrabajo.PerfilTratamiento.AddAsync(nuevo);
-            //        }
-
-            //    }
-            //}
             perfilDb.UbicacionRef = null;
 
             if (vm.ArchivoImagen != null && vm.ArchivoImagen.Length > 0)
