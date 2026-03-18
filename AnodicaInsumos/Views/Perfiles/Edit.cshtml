@@ -54,7 +54,16 @@
                             <option value="">Seleccionar proveedor...</option>
                             @foreach (var item in proveedores)
                             {
-                                <option value="@item.Value">@item.Text</option>
+                                var selected = Model.Perfil.Linea != null && Model.Perfil.Linea.ProveedorRef.ToString() == item.Value;
+
+                                if (selected)
+                                {
+                                    <option value="@item.Value" selected>@item.Text</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
                             }
                         </select>
                     </div>
@@ -76,6 +85,12 @@
                     <div class="col-md-6">
                         <label class="form-label text-secondary small">Forma</label>
                         <input asp-for="ArchivoImagen" type="file" id="archivoImagen" class="form-control" accept="image/*" />
+                        <input type="hidden" id="EliminarImagen" name="EliminarImagen" value="false" />
+                        <button type="button"
+                                class="btn btn-danger btn-sm mt-2 ms-auto"
+                                onclick="limpiarImagen()">
+                            <i class="bi bi-x-lg"></i> Quitar imagen
+                        </button>
                     </div>
 
                     <div class="col-md-6">
@@ -204,11 +219,15 @@
                                                    class="form-control form-control-sm descripcionEquivalente"
                                                    readonly />
                                         </td>
-                                        <td class="text-center">
+                                        <td class="text-center acciones-equivalencia">
                                             @if (i == 0)
                                             {
                                                 <button type="button" class="btn btn-success btn-sm" onclick="agregarEquivalencia()">
                                                     <i class="bi bi-plus-lg"></i>
+                                                </button>
+
+                                                <button type="button" class="btn btn-danger btn-sm" onclick="eliminarFila(this)">
+                                                    <i class="bi bi-x-lg"></i>
                                                 </button>
                                             }
                                             else
@@ -235,10 +254,20 @@
                                                class="form-control form-control-sm descripcionEquivalente"
                                                readonly />
                                     </td>
-                                    <td class="text-center">
-                                        <button type="button" class="btn btn-success btn-sm" onclick="agregarEquivalencia()">
-                                            <i class="bi bi-plus-lg"></i>
-                                        </button>
+                                    <td class="text-center acciones-equivalencia">
+                                        <div class="d-flex gap-1 justify-content-center">
+                                            <button type="button"
+                                                    class="btn btn-success btn-sm"
+                                                    onclick="agregarEquivalencia()">
+                                                <i class="bi bi-plus-lg"></i>
+                                            </button>
+
+                                            <button type="button"
+                                                    class="btn btn-danger btn-sm"
+                                                    onclick="eliminarFila(this)">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             }
@@ -327,7 +356,7 @@
             }
         });
 
-            function agregarEquivalencia() {
+        function agregarEquivalencia() {
             const tabla = document.getElementById("tablaEquivalencias");
             const index = tabla.querySelectorAll("tr").length;
 
@@ -336,7 +365,8 @@
             fila.innerHTML = `
                 <td>
                     <input name="PerfilEquivalencias[${index}].Codigo"
-                           class="form-control form-control-sm codigoEquivalente" />
+                           class="form-control form-control-sm codigoEquivalente"
+                           placeholder="Código perfil" />
 
                     <input name="PerfilEquivalencias[${index}].PerfilEquivalenteRef"
                            type="hidden"
@@ -347,7 +377,7 @@
                            class="form-control form-control-sm descripcionEquivalente"
                            readonly />
                 </td>
-                <td class="text-center">
+                <td class="text-center acciones-equivalencia">
                     <button type="button"
                             class="btn btn-danger btn-sm"
                             onclick="eliminarFila(this)">
@@ -357,11 +387,52 @@
             `;
 
             tabla.appendChild(fila);
+            reindexarEquivalencias();
+            actualizarBotonesEquivalencias();
         }
 
         function eliminarFila(btn) {
             btn.closest("tr").remove();
             reindexarEquivalencias();
+            actualizarBotonesEquivalencias();
+        }
+
+        function actualizarBotonesEquivalencias() {
+            const filas = document.querySelectorAll("#tablaEquivalencias tr");
+
+            filas.forEach((fila, index) => {
+                const celdaAcciones = fila.querySelector(".acciones-equivalencia");
+                if (!celdaAcciones) return;
+
+                if (index === 0) {
+                    celdaAcciones.innerHTML = `
+                        <div class="d-flex gap-1 justify-content-center">
+                            <button type="button"
+                                    class="btn btn-success btn-sm"
+                                    onclick="agregarEquivalencia()">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                            <button type="button"
+                                    class="btn btn-danger btn-sm"
+                                    onclick="eliminarFila(this)">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    celdaAcciones.innerHTML = `
+                        <button type="button"
+                                class="btn btn-danger btn-sm"
+                                onclick="eliminarFila(this)">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    `;
+                }
+            });
+
+            if (filas.length === 0) {
+                agregarEquivalencia();
+            }
         }
 
         function reindexarEquivalencias() {
@@ -381,5 +452,23 @@
                 });
             });
         }
+
+        function limpiarImagen() {
+            const input = document.getElementById("archivoImagen");
+            const preview = document.getElementById("previewImagen");
+
+            input.value = "";
+            
+            preview.src = "https://placehold.co/100x70?text=Sin+imagen";
+
+            const eliminarFlag = document.getElementById("EliminarImagen");
+            if (eliminarFlag) {
+                eliminarFlag.value = "true";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            actualizarBotonesEquivalencias();
+        });
     </script>
 }

@@ -14,7 +14,7 @@ namespace AnodicaInsumos.Modelos
 
         [Required(ErrorMessage = "El Codigo es obligatorio.")]
         [MaxLength(50)]
-        public string PerfilCodigoAlcemar { get; set; }
+        public string PerfilCodigoAlcemar { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La Linea es obligatoria.")]
         public short LineaRef { get; set; }
@@ -31,7 +31,7 @@ namespace AnodicaInsumos.Modelos
 
         [Required(ErrorMessage = "La descripción es obligatoria.")]
         [MaxLength(500, ErrorMessage = "La descripción no puede superar los 500 caracteres.")]
-        public string Descripcion { get; set; }
+        public string Descripcion { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El peso por metro es obligatorio.")]
         [Range(0, 100, ErrorMessage = "El valor debe estar entre 0 y 100")]

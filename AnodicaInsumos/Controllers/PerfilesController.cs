@@ -135,7 +135,7 @@ namespace AnodicaInsumos.Controllers
         {
             var perfil = await _contenedorTrabajo.Perfil.GetFirstOrDefaultAsync(
                 x => x.PerfilID == id,
-                includeProperties: "Linea,Ubicacion,Tratamientos",
+                includeProperties: "Linea,Linea.Proveedor,Ubicacion,Tratamientos",
                 NoTracking: true
             );
 
@@ -155,7 +155,7 @@ namespace AnodicaInsumos.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, PerfilVM vm)
+        public async Task<IActionResult> Edit(int id, PerfilVM vm, bool EliminarImagen)
         {
             if (id != vm.Perfil.PerfilID)
                 return BadRequest();
@@ -179,7 +179,11 @@ namespace AnodicaInsumos.Controllers
 
             perfilDb.UbicacionRef = null;
 
-            if (vm.ArchivoImagen != null && vm.ArchivoImagen.Length > 0)
+            if (EliminarImagen)
+            {
+                perfilDb.ImagenPerfil = null;
+            }
+            else if (vm.ArchivoImagen != null && vm.ArchivoImagen.Length > 0)
             {
                 using var memoryStream = new MemoryStream();
                 await vm.ArchivoImagen.CopyToAsync(memoryStream);

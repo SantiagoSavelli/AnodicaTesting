@@ -29,10 +29,10 @@ namespace AnodicaInsumos.Modelos.ViewModels
         public string Descripcion { get; set; } = "";
     }
 
-    public class  PerfilEquivalenciaVM
+    public class PerfilEquivalenciaVM
     {
         public int? PerfilEquivalenteRef { get; set; }
-        public string Codigo { get; set; } = "";
-        public string Descripcion { get; set; } = "";
+        public string? Codigo { get; set; } 
+        public string? Descripcion { get; set; }
     }
 }
