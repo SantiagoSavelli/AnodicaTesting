@@ -27,34 +27,31 @@ namespace AnodicaInsumos.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Insumo insumo)
+        public async Task<IActionResult> Create(Insumo insumo)
         {
-            if (ModelState.IsValid) 
-            { 
-                _contenedorTrabajo.Insumo.Add(insumo);
-                _contenedorTrabajo.Save();
-                return RedirectToAction(nameof(Index));
-            }
+            if (!ModelState.IsValid) 
+                return View(insumo);
 
-            return View();
+            await _contenedorTrabajo.Insumo.AddAsync(insumo);
+            await _contenedorTrabajo.SaveAsync();
+
+            return View(nameof(Index));
         }
 
         [HttpGet]
-        public IActionResult Edit(short id)
+        public async Task<IActionResult> Edit(short id)
         {
-            var insumo = _contenedorTrabajo.Insumo.Get(id);
+            var insumo = await _contenedorTrabajo.Insumo.GetFirstOrDefaultAsync(x => x.InsumoID == id, NoTracking: true);
 
             if (insumo == null)
-            {
                 return NotFound();
-            }
 
             return View(insumo);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(short id, Insumo insumo)
+        public async Task<IActionResult> Edit(short id, Insumo insumo)
         {
             if (id != insumo.InsumoID)
                 return BadRequest();
@@ -62,47 +59,47 @@ namespace AnodicaInsumos.Controllers
             if (!ModelState.IsValid)
                 return View(insumo);
 
-            var existe = _contenedorTrabajo.Insumo.Get(id);
+            var existe = await _contenedorTrabajo.Insumo.GetAsync(id);
             if (existe == null)
                 return NotFound();
 
-            _contenedorTrabajo.Insumo.Update(insumo);
-            _contenedorTrabajo.Save();
+            existe.CodigoInsumo = insumo.CodigoInsumo;
+            existe.InsumoNombre = insumo.InsumoNombre;
+            existe.UnidadMedida = insumo.UnidadMedida;
+
+            _contenedorTrabajo.Insumo.Update(existe);
+            await _contenedorTrabajo.SaveAsync();
 
             return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
-        public IActionResult Details(short id)
+        public async  Task<IActionResult> Details(short id)
         {
-            var insumo = _contenedorTrabajo.Insumo.Get(id);
+            var insumo = await _contenedorTrabajo.Insumo.GetFirstOrDefaultAsync(x => x.InsumoID == id, NoTracking: true);
             if (insumo == null) return NotFound();
             return View(insumo);
         }
 
         #region Llamadas a la API
         [HttpGet]
-        public IActionResult GetAll(string? codigo, string? nombre, string? unidad, int page = 1, int pageSize = 10)
+        public async Task<IActionResult> GetAll(string? codigo, string? nombre, string? unidad, int page = 1, int pageSize = 10)
         {
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 10;
 
-            // Ideal: que GetAll devuelva IQueryable; si devuelve IEnumerable, igual funciona pero menos eficiente.
-            var query = _contenedorTrabajo.Insumo.GetAll().AsQueryable();
+            var insumos = await _contenedorTrabajo.Insumo.GetAllAsync(
+                filter: x =>
+                    (string.IsNullOrWhiteSpace(codigo) || x.CodigoInsumo.Contains(codigo)) &&
+                    (string.IsNullOrWhiteSpace(nombre) || x.InsumoNombre.Contains(nombre)) &&
+                    (string.IsNullOrWhiteSpace(unidad) || x.UnidadMedida.Contains(unidad)),
+                orderBy: q => q.OrderBy(x => x.InsumoID),
+                NoTracking: true
+            );
 
-            if (!string.IsNullOrWhiteSpace(codigo))
-                query = query.Where(x => x.CodigoInsumo.Contains(codigo));
+            var total = insumos.Count();
 
-            if (!string.IsNullOrWhiteSpace(nombre))
-                query = query.Where(x => x.InsumoNombre.Contains(nombre));
-
-            if (!string.IsNullOrWhiteSpace(unidad))
-                query = query.Where(x => x.UnidadMedida.Contains(unidad));
-
-            var total = query.Count();
-
-            var data = query
-                .OrderBy(x => x.InsumoID)
+            var data = insumos
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
@@ -111,17 +108,18 @@ namespace AnodicaInsumos.Controllers
         }
 
         [HttpDelete]
-        public IActionResult Delete(short id)
+        public async Task<IActionResult> Delete(short id)
         {
-            var objFromDb = _contenedorTrabajo.Insumo.Get(id);
-            if (objFromDb == null)
+            var insumo = await _contenedorTrabajo.Insumo.GetAsync(id);
+            if (insumo == null)
             {
-                return Json(new { success = false, message = "Error no se encontro el insumo" });
+                return Json(new { success = false, message = "Error no se encontró el insumo." });
             }
 
-            _contenedorTrabajo.Insumo.Remove(objFromDb);
-            _contenedorTrabajo.Save();
-            return Json(new { success = true, message = "Insumo borrado correctamente" });
+            _contenedorTrabajo.Insumo.Remove(insumo);
+            await _contenedorTrabajo.SaveAsync();
+
+            return Json(new { success = true, message = "Insumo borrado correctamente." });
         }
         #endregion
     }

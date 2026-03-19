@@ -35,13 +35,7 @@
 
                 <div class="col-md-3">
                     <label asp-for="UnidadMedida" class="form-label text-secondary small"></label>
-                    <select asp-for="UnidadMedida" class="form-select">
-                        <option value="">Seleccionar...</option>
-                        <option value="UN">UN</option>
-                        <option value="KG">KG</option>
-                        <option value="LT">LT</option>
-                        <option value="M">M</option>
-                    </select>
+                    <input asp-for="UnidadMedida" class="form-control" placeholder="Ej: UN / KG / M ..." />
                     <span asp-validation-for="UnidadMedida" class="text-danger"></span>
                 </div>
 

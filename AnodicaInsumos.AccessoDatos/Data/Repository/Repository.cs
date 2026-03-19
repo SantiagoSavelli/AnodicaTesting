@@ -1,9 +1,6 @@
 ﻿using AnodicaInsumos.AccessoDatos.Data.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace AnodicaInsumos.AccessoDatos.Data.Repository
 {
@@ -15,83 +12,75 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
         public Repository(ApplicationDbContext db)
         {
             _db = db;
-            this.dbSet = db.Set<T>();
+            dbSet = db.Set<T>();
         }
 
-        public void Add(T entity)
+        public async Task AddAsync(T entity)
         {
-            dbSet.Add(entity);
+            await dbSet.AddAsync(entity);
         }
 
-        public T? Get(TKey id)
+        public async Task<T?> GetAsync(TKey id)
         {
-            return dbSet.Find(id);
+            return await dbSet.FindAsync(id);
         }
 
-        public IEnumerable<T> GetAll(Expression<Func<T, bool>>? filter = null, Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null, string? includeProperties = null)
+        public async Task<IEnumerable<T>> GetAllAsync(
+            Expression<Func<T, bool>>? filter = null,
+            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
+            string? includeProperties = null,
+            bool? NoTracking = false
+        )
         {
-            // Se crea una consulta IQueryable a partir del DbSet del contexto
             IQueryable<T> query = dbSet;
 
-            // Se aplica el filtro si se proporciona 
             if (filter != null)
-            {
                 query = query.Where(filter);
-            }
 
-            // Se incluyen las propiedades de navegacion
-            if (includeProperties != null)
+            if (!string.IsNullOrWhiteSpace(includeProperties))
             {
-                // Se divide la cadena de propiedades por coma y se itera sobre ellas
                 foreach (var includeProperty in includeProperties
                     .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
                 {
-                    query = query.Include(includeProperty);
+                    query = query.Include(includeProperty.Trim());
                 }
             }
 
-            // Se aplica el ordenamiento si se proporciona
+            if (NoTracking == true)
+            {
+                query = query.AsNoTracking();
+            }
+
             if (orderBy != null)
-            {
-                // Se ejecuta la funcion de ordenamiento y se convierte en una lista
-                return orderBy(query).ToList();
-            }
+                return await orderBy(query).ToListAsync();
 
-            // Si no se proporciona ordenamiento, simplemente se convierte la consulta en una lista
-            return query.ToList();
+            return await query.ToListAsync();
         }
 
-        public T? GetFirstOrDefault(Expression<Func<T, bool>>? filter = null, string? includeProperties = null)
+        public async Task<T?> GetFirstOrDefaultAsync(
+            Expression<Func<T, bool>>? filter = null,
+            string? includeProperties = null,
+            bool? NoTracking = false
+        )
         {
-            // Se crea una consulta IQueryable a partir del DbSet del contexto
             IQueryable<T> query = dbSet;
 
-            // Se aplica el filtro si se proporciona 
             if (filter != null)
-            {
                 query = query.Where(filter);
-            }
 
-            // Se incluyen las propiedades de navegacion
-            if (includeProperties != null)
+            if (!string.IsNullOrWhiteSpace(includeProperties))
             {
-                // Se divide la cadena de propiedades por coma y se itera sobre ellas
                 foreach (var includeProperty in includeProperties
                     .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
                 {
-                    query = query.Include(includeProperty);
+                    query = query.Include(includeProperty.Trim());
                 }
             }
-
-            // Si no se proporciona ordenamiento, simplemente se convierte la consulta en una lista
-            return query.FirstOrDefault();
-        }
-
-        public void Remove(TKey id)
-        {
-            var entityToRemove = dbSet.Find(id);
-            if (entityToRemove != null)
-                dbSet.Remove(entityToRemove);
+            if (NoTracking == true)
+            {
+                query = query.AsNoTracking();
+            }
+            return await query.FirstOrDefaultAsync();
         }
 
         public void Remove(T entity)
