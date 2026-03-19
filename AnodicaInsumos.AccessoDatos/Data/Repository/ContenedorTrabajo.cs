@@ -46,12 +46,6 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
             _db.Dispose();
         }
 
-        // Usar el save de modo asincronico para evitar bloqueos en la interfaz de usuario
-        public void Save()
-        {
-            _db.SaveChanges();
-        }
-
         public async Task SaveAsync()
         {
             await _db.SaveChangesAsync();

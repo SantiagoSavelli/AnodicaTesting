@@ -15,50 +15,14 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
             dbSet = db.Set<T>();
         }
 
-        public void Add(T entity)
-        {
-            dbSet.Add(entity);
-        }
-
         public async Task AddAsync(T entity)
         {
             await dbSet.AddAsync(entity);
         }
 
-        public T? Get(TKey id)
-        {
-            return dbSet.Find(id);
-        }
-
         public async Task<T?> GetAsync(TKey id)
         {
             return await dbSet.FindAsync(id);
-        }
-
-        public IEnumerable<T> GetAll(
-            Expression<Func<T, bool>>? filter = null,
-            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
-            string? includeProperties = null
-        )
-        {
-            IQueryable<T> query = dbSet;
-
-            if (filter != null)
-                query = query.Where(filter);
-
-            if (!string.IsNullOrWhiteSpace(includeProperties))
-            {
-                foreach (var includeProperty in includeProperties
-                    .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-                {
-                    query = query.Include(includeProperty.Trim());
-                }
-            }
-
-            if (orderBy != null)
-                return orderBy(query).ToList();
-
-            return query.ToList();
         }
 
         public async Task<IEnumerable<T>> GetAllAsync(
@@ -93,28 +57,6 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
             return await query.ToListAsync();
         }
 
-        public T? GetFirstOrDefault(
-            Expression<Func<T, bool>>? filter = null,
-            string? includeProperties = null
-        )
-        {
-            IQueryable<T> query = dbSet;
-
-            if (filter != null)
-                query = query.Where(filter);
-
-            if (!string.IsNullOrWhiteSpace(includeProperties))
-            {
-                foreach (var includeProperty in includeProperties
-                    .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-                {
-                    query = query.Include(includeProperty.Trim());
-                }
-            }
-
-            return query.FirstOrDefault();
-        }
-
         public async Task<T?> GetFirstOrDefaultAsync(
             Expression<Func<T, bool>>? filter = null,
             string? includeProperties = null,
@@ -139,13 +81,6 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
                 query = query.AsNoTracking();
             }
             return await query.FirstOrDefaultAsync();
-        }
-
-        public void Remove(TKey id)
-        {
-            var entityToRemove = dbSet.Find(id);
-            if (entityToRemove != null)
-                dbSet.Remove(entityToRemove);
         }
 
         public void Remove(T entity)
