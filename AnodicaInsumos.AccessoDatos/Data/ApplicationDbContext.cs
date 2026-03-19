@@ -27,5 +27,23 @@ namespace AnodicaInsumos.AccessoDatos.Data
         public DbSet<Tratamiento> Tratamiento { get; set; }
         public DbSet<PerfilTratamiento> PerfilTratamiento { get; set; }
         public DbSet<LineaGrupoTratamiento> LineaGrupoTratamiento { get; set; }
+
+        // Configuacion de onModelCreating para relaciones muchos a muchos
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<PerfilEquivalencia>()
+                .HasOne(pe => pe.Perfil)
+                .WithMany(p => p.Equivalencias)
+                .HasForeignKey(pe => pe.PerfilRef)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PerfilEquivalencia>()
+                .HasOne(pe => pe.PerfilEquivalente)
+                .WithMany()
+                .HasForeignKey(pe => pe.PerfilEquivalenteRef)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }
