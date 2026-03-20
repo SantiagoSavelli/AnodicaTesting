@@ -9,6 +9,7 @@ namespace AnodicaInsumos.Modelos.ViewModels
         public Perfil Perfil { get; set; } = new Perfil();
 
         public IFormFile? ArchivoImagen { get; set; }
+        public bool EliminarImagen { get; set; } = true;
 
         public List<SelectListItem> Proveedores { get; set; } = new();
         public List<SelectListItem> Lineas { get; set; } = new();

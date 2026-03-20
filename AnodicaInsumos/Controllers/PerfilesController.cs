@@ -28,12 +28,12 @@ namespace AnodicaInsumos.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var vm = new PerfilVM();
-            await CargarCombosAsync(vm);
-            var tratamientos = await _contenedorTrabajo.Tratamiento.GetAllAsync();
+            var vm = new PerfilVM(); 
+            await CargarCombosAsync(vm); 
+            var tratamientos = await _contenedorTrabajo.Tratamiento.GetAllAsync(); 
 
-            vm.PerfilTratamientos = tratamientos
-                .Select(t => new PerfilTratamientoVM
+            vm.PerfilTratamientos = tratamientos 
+                .Select(t => new PerfilTratamientoVM 
                 {
                     TratamientoRef = t.TratamientoID,
                     Descripcion = t.TratamientoNombre,
@@ -41,67 +41,29 @@ namespace AnodicaInsumos.Controllers
                     CantMinimaTirasStock = 0,
                     CantidadStock = 0
                 })
-                .ToList();
-            return View(vm);
+                .ToList(); 
+            return View(vm); 
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(PerfilVM vm)
         {
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValid) 
             {
-                await CargarCombosAsync(vm);
+                await CargarCombosAsync(vm); 
                 return View(vm);
             }
 
-            var perfil = _mapper.Map<Perfil>(vm.Perfil);
-            perfil.UbicacionRef = null;
+            var perfil = await _contenedorTrabajo.Perfil.GetFirstOrDefaultAsync(x => x.PerfilCodigoAlcemar == vm.Perfil.PerfilCodigoAlcemar);
 
-            if (vm.ArchivoImagen != null && vm.ArchivoImagen.Length > 0)
-            {
-                using var memoryStream = new MemoryStream();
-                await vm.ArchivoImagen.CopyToAsync(memoryStream);
-                perfil.ImagenPerfil = memoryStream.ToArray();
-            }
+            if (perfil == null)
+                return NotFound();
 
-            // Tratamientos
-            foreach (var tratamiento in vm.PerfilTratamientos)
-            {
-                if (tratamiento.UbicacionRef == null && tratamiento.CantMinimaTirasStock == 0)
-                    continue;
-
-                perfil.Tratamientos.Add(new PerfilTratamiento
-                {
-                    TratamientoRef = tratamiento.TratamientoRef,
-                    UbicacionRef = tratamiento.UbicacionRef,
-                    CantMinimaTirasStock = tratamiento.CantMinimaTirasStock
-                });
-            }
-
-            // Equivalencias
-            var codigos = vm.PerfilEquivalencias
-                .Where(x => !string.IsNullOrWhiteSpace(x.Codigo))
-                .Select(x => x.Codigo.Trim())
-                .Distinct()
-                .ToList();
-
-            if (codigos.Count > 0)
-            {
-                var perfilesEquivalentes = await _contenedorTrabajo.Perfil
-                    .GetAllAsync(x => codigos.Contains(x.PerfilCodigoAlcemar), NoTracking: true);
-
-                foreach (var perfilEquivalente in perfilesEquivalentes)
-                {
-                    perfil.Equivalencias.Add(new PerfilEquivalencia
-                    {
-                        PerfilEquivalenteRef = perfilEquivalente.PerfilID
-                    });
-                }
-            }
+            await MapPerfil(vm, perfil);
 
             await _contenedorTrabajo.Perfil.AddAsync(perfil);
-            await _contenedorTrabajo.SaveAsync();
+            await _contenedorTrabajo.SaveAsync(); 
 
             return RedirectToAction(nameof(Index));
         }
@@ -136,18 +98,18 @@ namespace AnodicaInsumos.Controllers
                 x => x.PerfilID == id,
                 includeProperties: "Linea,Linea.Proveedor,Ubicacion,Tratamientos",
                 NoTracking: true
-            );
+            ); 
 
             if (perfil == null)
-                return NotFound();
+                return NotFound(); 
 
-            var vm = new PerfilVM
+            var vm = new PerfilVM 
             {
                 Perfil = perfil
             };
 
-            await CargarCombosAsync(vm);
-            await CargarDatosEditAsync(vm);
+            await CargarCombosAsync(vm); 
+            await CargarDatosEditAsync(vm); 
 
             return View(vm);
         }
@@ -156,117 +118,29 @@ namespace AnodicaInsumos.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, PerfilVM vm, bool EliminarImagen)
         {
-            if (id != vm.Perfil.PerfilID)
+            if (id != vm.Perfil.PerfilID) 
                 return BadRequest();
 
             if (!ModelState.IsValid)
             {
-                await CargarCombosAsync(vm);
-                await CargarDatosEditAsync(vm);
-                return View(vm);
+                await CargarCombosAsync(vm); 
+                await CargarDatosEditAsync(vm); 
+                return View(vm); 
             }
 
             var perfilDb = await _contenedorTrabajo.Perfil.GetFirstOrDefaultAsync(
                 x => x.PerfilID == id,
                 includeProperties: "Tratamientos,Equivalencias",
                 NoTracking: false
-            );
+            ); 
 
             if (perfilDb == null)
-                return NotFound();
+                return NotFound(); 
 
-            _mapper.Map(vm.Perfil, perfilDb);
-            perfilDb.UbicacionRef = null;
-
-            if (EliminarImagen)
-            {
-                perfilDb.ImagenPerfil = null;
-            }
-            else if (vm.ArchivoImagen != null && vm.ArchivoImagen.Length > 0)
-            {
-                using var memoryStream = new MemoryStream();
-                await vm.ArchivoImagen.CopyToAsync(memoryStream);
-                perfilDb.ImagenPerfil = memoryStream.ToArray();
-            }
-
-            var tratamientosVm = vm.PerfilTratamientos
-                .Where(x => x.UbicacionRef != null || x.CantMinimaTirasStock > 0)
-                .ToDictionary(x => x.TratamientoRef);
-
-            var tratamientosDb = perfilDb.Tratamientos.ToDictionary(x => x.TratamientoRef);
-
-            foreach (var item in tratamientosVm)
-            {
-                if (tratamientosDb.TryGetValue(item.Key, out var existente))
-                {
-                    existente.UbicacionRef = item.Value.UbicacionRef;
-                    existente.CantMinimaTirasStock = item.Value.CantMinimaTirasStock;
-                }
-                else
-                {
-                    perfilDb.Tratamientos.Add(new PerfilTratamiento
-                    {
-                        PerfilRef = id,
-                        TratamientoRef = item.Value.TratamientoRef,
-                        UbicacionRef = item.Value.UbicacionRef,
-                        CantMinimaTirasStock = item.Value.CantMinimaTirasStock
-                    });
-                }
-            }
-
-            var tratamientosAEliminar = perfilDb.Tratamientos
-                .Where(x => !tratamientosVm.ContainsKey(x.TratamientoRef))
-                .ToList();
-
-            foreach (var item in tratamientosAEliminar)
-            {
-                perfilDb.Tratamientos.Remove(item);
-            }
-
-            var codigos = vm.PerfilEquivalencias
-                .Where(x => !string.IsNullOrWhiteSpace(x.Codigo))
-                .Select(x => x.Codigo.Trim())
-                .Distinct()
-                .ToList();
-
-            var perfilesEquivalentes = codigos.Count == 0
-                ? new List<Perfil>()
-                : (await _contenedorTrabajo.Perfil.GetAllAsync(
-                    x => codigos.Contains(x.PerfilCodigoAlcemar) && x.PerfilID != id,
-                    NoTracking: true
-                )).ToList();
-
-            var idsVm = perfilesEquivalentes
-                .Select(x => x.PerfilID)
-                .ToHashSet();
-
-            var idsDb = perfilDb.Equivalencias
-                .Select(x => x.PerfilEquivalenteRef)
-                .ToHashSet();
-
-            foreach (var perfilEquivalente in perfilesEquivalentes)
-            {
-                if (!idsDb.Contains(perfilEquivalente.PerfilID))
-                {
-                    perfilDb.Equivalencias.Add(new PerfilEquivalencia
-                    {
-                        PerfilRef = id,
-                        PerfilEquivalenteRef = perfilEquivalente.PerfilID
-                    });
-                }
-            }
-
-            var equivalenciasAEliminar = perfilDb.Equivalencias
-                .Where(x => !idsVm.Contains(x.PerfilEquivalenteRef))
-                .ToList();
-
-            foreach (var item in equivalenciasAEliminar)
-            {
-                perfilDb.Equivalencias.Remove(item);
-            }
+            await MapPerfil(vm, perfilDb);
 
             _contenedorTrabajo.Perfil.Update(perfilDb);
-            await _contenedorTrabajo.SaveAsync();
+            await _contenedorTrabajo.SaveAsync(); 
 
             return RedirectToAction(nameof(Index));
         }
@@ -274,15 +148,15 @@ namespace AnodicaInsumos.Controllers
         private async Task CargarCombosAsync(PerfilVM vm)
         {
             var proveedores = await _contenedorTrabajo.Proveedor.GetAllAsync();
-            var lineas = await _contenedorTrabajo.Linea.GetAllAsync();
+            var lineas = await _contenedorTrabajo.Linea.GetAllAsync(); 
             var ubicaciones = await _contenedorTrabajo.Ubicacion.GetAllAsync();
             var tratamientos = await _contenedorTrabajo.Tratamiento.GetAllAsync();
 
-            vm.Proveedores = proveedores.Select(x => new SelectListItem
+            vm.Proveedores = proveedores.Select(x => new SelectListItem 
             {
                 Text = x.ProveedorNombre,
                 Value = x.ProveedorID.ToString()
-            }).ToList();
+            }).ToList(); 
 
             vm.Lineas = lineas.Select(x => new SelectListItem
             {
@@ -306,12 +180,12 @@ namespace AnodicaInsumos.Controllers
         private async Task CargarDatosEditAsync(PerfilVM vm)
         {
             if (vm.Perfil.Tratamientos == null)
-                throw new Exception("Error: No se cargaron los tratamientos.");
-            var tratamientos = await _contenedorTrabajo.Tratamiento.GetAllAsync();
+                throw new Exception("Error: No se cargaron los tratamientos."); 
+            var tratamientos = await _contenedorTrabajo.Tratamiento.GetAllAsync(); 
             foreach (var t in tratamientos)
             {
                 var te = vm.Perfil.Tratamientos.FirstOrDefault(x => x.TratamientoRef == t.TratamientoID);
-                vm.PerfilTratamientos.Add(new PerfilTratamientoVM
+                vm.PerfilTratamientos.Add(new PerfilTratamientoVM 
                 {
                     TratamientoRef = t.TratamientoID,
                     UbicacionRef = te?.UbicacionRef,
@@ -341,6 +215,61 @@ namespace AnodicaInsumos.Controllers
                     Descripcion = x.Descripcion ?? ""
                 })
                 .ToList();
+        }
+
+        private async Task MapPerfil(PerfilVM vm, Perfil perfilDb)
+        {
+            if (perfilDb.Tratamientos == null)
+                throw new ArgumentException("El perfil no tiene cargado los tratamientos");
+
+            if (perfilDb.Equivalencias == null)
+                throw new ArgumentException("El perfil no tiene cargado las equivalencias");
+
+            _mapper.Map(vm, perfilDb);
+            perfilDb.UbicacionRef = null;
+            
+            if (vm.EliminarImagen && vm.ArchivoImagen == null)
+            {
+                perfilDb.ImagenPerfil = null;
+            }
+            else if (vm.ArchivoImagen != null && vm.ArchivoImagen.Length > 0)
+            {
+                using var memoryStream = new MemoryStream();
+                await vm.ArchivoImagen.CopyToAsync(memoryStream);
+                perfilDb.ImagenPerfil = memoryStream.ToArray();
+            }
+
+            foreach (var tratamiento in vm.PerfilTratamientos)
+            {
+                var existente = perfilDb.Tratamientos.FirstOrDefault(x => x.TratamientoRef == tratamiento.TratamientoRef);
+
+                if (tratamiento.UbicacionRef == null && tratamiento.CantMinimaTirasStock == 0 && existente != null)
+                {
+                    perfilDb.Tratamientos.Remove(existente);
+                    continue;
+                }
+                else if (existente != null)
+                {
+                    existente.UbicacionRef = tratamiento.UbicacionRef;
+                    existente.CantMinimaTirasStock = tratamiento.CantMinimaTirasStock;
+
+                } 
+                else if (existente == null && (tratamiento.UbicacionRef == null && tratamiento.CantidadStock == 0))
+                {
+                    continue;
+                }
+                else
+                {
+                    perfilDb.Tratamientos.Add(new PerfilTratamiento
+                    {
+                        PerfilRef = perfilDb.PerfilID,
+                        TratamientoRef = tratamiento.TratamientoRef,
+                        UbicacionRef = tratamiento.UbicacionRef,
+                        CantMinimaTirasStock = tratamiento.CantMinimaTirasStock
+                    });
+                }
+            }
+
         }
 
         #region Llamadas a la API
