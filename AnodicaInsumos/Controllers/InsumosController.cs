@@ -7,20 +7,22 @@ namespace AnodicaInsumos.Controllers
     public class InsumosController : Controller
     {
         private readonly IContenedorTrabajo _contenedorTrabajo;
+        private readonly ILogger<InsumosController> _logger;
 
-        public InsumosController(IContenedorTrabajo contenedorTrabajo)
+        public InsumosController(IContenedorTrabajo contenedorTrabajo, ILogger<InsumosController> logger)
         {
             _contenedorTrabajo = contenedorTrabajo;
+            _logger = logger;
         }
 
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             return View();
         }
 
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             return View();
         }
@@ -32,10 +34,18 @@ namespace AnodicaInsumos.Controllers
             if (!ModelState.IsValid) 
                 return View(insumo);
 
-            await _contenedorTrabajo.Insumo.AddAsync(insumo);
-            await _contenedorTrabajo.SaveAsync();
+            try 
+            {
+                await _contenedorTrabajo.Insumo.AddAsync(insumo);
+                await _contenedorTrabajo.SaveAsync();
 
-            return View(nameof(Index));
+                return View(nameof(Index));
+            } catch (Exception ex) 
+            {
+                _logger.LogError(ex, "Error al crear el insumo");
+                ModelState.AddModelError(string.Empty, "Ocurrió un error al crear el insumo. Por favor, intente nuevamente.");
+                return View(insumo);
+            }
         }
 
         [HttpGet]
@@ -59,22 +69,31 @@ namespace AnodicaInsumos.Controllers
             if (!ModelState.IsValid)
                 return View(insumo);
 
-            var existe = await _contenedorTrabajo.Insumo.GetAsync(id);
-            if (existe == null)
-                return NotFound();
+            try
+            {
+                var existe = await _contenedorTrabajo.Insumo.GetAsync(id);
+                if (existe == null)
+                    return NotFound();
 
-            existe.CodigoInsumo = insumo.CodigoInsumo;
-            existe.InsumoNombre = insumo.InsumoNombre;
-            existe.UnidadMedida = insumo.UnidadMedida;
+                existe.CodigoInsumo = insumo.CodigoInsumo;
+                existe.InsumoNombre = insumo.InsumoNombre;
+                existe.UnidadMedida = insumo.UnidadMedida;
 
-            _contenedorTrabajo.Insumo.Update(existe);
-            await _contenedorTrabajo.SaveAsync();
+                _contenedorTrabajo.Insumo.Update(existe);
+                await _contenedorTrabajo.SaveAsync();
 
-            return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al actualizar el insumo con ID {InsumoID}", id);
+                ModelState.AddModelError(string.Empty, "Ocurrió un error al editar el insumo. Por favor, intente nuevamente.");
+                return View(insumo);
+            }
         }
 
         [HttpGet]
-        public async  Task<IActionResult> Details(short id)
+        public async Task<IActionResult> Details(short id)
         {
             var insumo = await _contenedorTrabajo.Insumo.GetFirstOrDefaultAsync(x => x.InsumoID == id, NoTracking: true);
             if (insumo == null) return NotFound();
