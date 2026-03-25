@@ -1,5 +1,6 @@
 ﻿using AnodicaInsumos.AccessoDatos.Data.Repository.IRepository;
 using AnodicaInsumos.Modelos;
+using AutoMapper;
 using System;
 using System.Collections.Generic;
 using System.Text;

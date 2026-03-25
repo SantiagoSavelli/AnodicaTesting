@@ -7,7 +7,20 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        CreateMap<Perfil, PerfilVM>().ReverseMap();
+        CreateMap<Perfil, PerfilVM>().ReverseMap()
+            .ForMember(dest => dest.PerfilID, opt => opt.Ignore())
+            .ForMember(dest => dest.ImagenPerfil, opt => opt.Ignore())
+            .ForMember(dest => dest.Tratamientos, opt => opt.Ignore())
+            .ForMember(dest => dest.Equivalencias, opt => opt.Ignore())
+            .ForMember(dest => dest.UbicacionRef, opt => opt.Ignore());
+
+        CreateMap<Perfil, Perfil>()
+            .ForMember(dest => dest.PerfilID, opt => opt.Ignore())
+            .ForMember(dest => dest.ImagenPerfil, opt => opt.Ignore())
+            .ForMember(dest => dest.Tratamientos, opt => opt.Ignore())
+            .ForMember(dest => dest.Equivalencias, opt => opt.Ignore())
+            .ForMember(dest => dest.UbicacionRef, opt => opt.Ignore());
+
         CreateMap<PerfilTratamiento, PerfilTratamientoVM>().ReverseMap();
     }
 }

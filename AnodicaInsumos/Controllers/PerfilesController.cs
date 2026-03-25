@@ -12,15 +12,17 @@ namespace AnodicaInsumos.Controllers
     {
         private readonly IContenedorTrabajo _contenedorTrabajo;
         private readonly IMapper _mapper;
+        private readonly ILogger<PerfilesController> _logger;
 
-        public PerfilesController(IContenedorTrabajo contenedorTrabajo, IMapper mapper)
+        public PerfilesController(IContenedorTrabajo contenedorTrabajo, IMapper mapper, ILogger<PerfilesController> logger)
         {
             _contenedorTrabajo = contenedorTrabajo;
             _mapper = mapper;
+            _logger = logger;
         }
 
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             return View();
         }
@@ -55,17 +57,23 @@ namespace AnodicaInsumos.Controllers
                 return View(vm);
             }
 
-            var perfil = await _contenedorTrabajo.Perfil.GetFirstOrDefaultAsync(x => x.PerfilCodigoAlcemar == vm.Perfil.PerfilCodigoAlcemar);
+            try
+            {
+                Perfil perfil = new Perfil();
 
-            if (perfil == null)
-                return NotFound();
+                await MapPerfil(vm, perfil);
 
-            await MapPerfil(vm, perfil);
+                await _contenedorTrabajo.Perfil.AddAsync(perfil);
+                await _contenedorTrabajo.SaveAsync();
 
-            await _contenedorTrabajo.Perfil.AddAsync(perfil);
-            await _contenedorTrabajo.SaveAsync(); 
-
-            return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index));
+            } catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al crear el perfil");
+                ModelState.AddModelError(string.Empty, "Ocurrió un error al crear el perfil. Por favor, intente nuevamente.");
+                await CargarCombosAsync(vm);
+                return View(vm);
+            }
         }
 
         [HttpGet]
@@ -101,7 +109,7 @@ namespace AnodicaInsumos.Controllers
             ); 
 
             if (perfil == null)
-                return NotFound(); 
+                return NotFound();  
 
             var vm = new PerfilVM 
             {
@@ -127,22 +135,32 @@ namespace AnodicaInsumos.Controllers
                 await CargarDatosEditAsync(vm); 
                 return View(vm); 
             }
-
-            var perfilDb = await _contenedorTrabajo.Perfil.GetFirstOrDefaultAsync(
+            try
+            {
+                var perfilDb = await _contenedorTrabajo.Perfil.GetFirstOrDefaultAsync(
                 x => x.PerfilID == id,
                 includeProperties: "Tratamientos,Equivalencias",
                 NoTracking: false
-            ); 
+                );
 
-            if (perfilDb == null)
-                return NotFound(); 
+                if (perfilDb == null)
+                    return NotFound();
 
-            await MapPerfil(vm, perfilDb);
+                await MapPerfil(vm, perfilDb);
 
-            _contenedorTrabajo.Perfil.Update(perfilDb);
-            await _contenedorTrabajo.SaveAsync(); 
+                _contenedorTrabajo.Perfil.Update(perfilDb);
+                await _contenedorTrabajo.SaveAsync();
 
-            return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex) 
+            {
+                _logger.LogError(ex, "Error al editar el perfil");
+                ModelState.AddModelError(string.Empty, "Ocurrió un error al editar el perfil. Por favor, intente nuevamente.");
+                await CargarCombosAsync(vm);
+                await CargarDatosEditAsync(vm);
+                return View(vm);
+            }
         }
 
         private async Task CargarCombosAsync(PerfilVM vm)
@@ -225,7 +243,7 @@ namespace AnodicaInsumos.Controllers
             if (perfilDb.Equivalencias == null)
                 throw new ArgumentException("El perfil no tiene cargado las equivalencias");
 
-            _mapper.Map(vm, perfilDb);
+            _mapper.Map(vm.Perfil, perfilDb);
             perfilDb.UbicacionRef = null;
             
             if (vm.EliminarImagen && vm.ArchivoImagen == null)
@@ -252,9 +270,8 @@ namespace AnodicaInsumos.Controllers
                 {
                     existente.UbicacionRef = tratamiento.UbicacionRef;
                     existente.CantMinimaTirasStock = tratamiento.CantMinimaTirasStock;
-
                 } 
-                else if (existente == null && (tratamiento.UbicacionRef == null && tratamiento.CantidadStock == 0))
+                else if (existente == null && (tratamiento.UbicacionRef == null && tratamiento.CantMinimaTirasStock == 0))
                 {
                     continue;
                 }
@@ -269,7 +286,41 @@ namespace AnodicaInsumos.Controllers
                     });
                 }
             }
+            
+            var codigos = vm.PerfilEquivalencias
+                .Where(x => !string.IsNullOrWhiteSpace(x.Codigo))
+                .Select(x => x.Codigo.Trim())
+                .Distinct()
+                .ToList();
 
+            var perfilesEquivalentes = await _contenedorTrabajo.Perfil
+                .GetAllAsync(x => codigos.Contains(x.PerfilCodigoAlcemar));
+
+            foreach (var perfilEquivalente in perfilesEquivalentes)
+            {
+                var existe = perfilDb.Equivalencias
+                    .FirstOrDefault(x => x.PerfilEquivalenteRef == perfilEquivalente.PerfilID);
+
+                if (existe == null && perfilEquivalente.PerfilID != perfilDb.PerfilID)
+                {
+                    perfilDb.Equivalencias.Add(new PerfilEquivalencia
+                    {
+                        PerfilRef = perfilDb.PerfilID,
+                        PerfilEquivalenteRef = perfilEquivalente.PerfilID
+                    });
+                }
+            }
+
+            foreach (var equivalenciaDb in perfilDb.Equivalencias) 
+            {
+                var sigueExistiendo = perfilesEquivalentes
+                    .Any(x => x.PerfilID == equivalenciaDb.PerfilEquivalenteRef);
+
+                if (!sigueExistiendo)
+                {
+                    _contenedorTrabajo.PerfilEquivalencia.Remove(equivalenciaDb);
+                }
+            }
         }
 
         #region Llamadas a la API
@@ -318,43 +369,6 @@ namespace AnodicaInsumos.Controllers
                 .ToList();
 
             return Json(new { data, total, page, pageSize });
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetLineasPorProveedor(int proveedorId)
-        {
-            var lineas = await _contenedorTrabajo.Linea.GetAllAsync();
-
-            var resultado = lineas
-                .Where(x => x.ProveedorRef == proveedorId)
-                .Select(x => new
-                {
-                    value = x.LineaID,
-                    text = x.LineaNombre
-                })
-                .ToList();
-
-            return Json(resultado);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetPerfilPorCodigo(string codigo)
-        {
-            if (string.IsNullOrWhiteSpace(codigo))
-                return Json(null);
-
-            var perfil = await _contenedorTrabajo.Perfil
-                .GetFirstOrDefaultAsync(p => p.PerfilCodigoAlcemar == codigo);
-
-            if (perfil == null)
-                return Json(null);
-
-            return Json(new
-            {
-                codigo = perfil.PerfilCodigoAlcemar,
-                descripcion = perfil.Descripcion,
-                id = perfil.PerfilID
-            });
         }
 
         [HttpDelete]
