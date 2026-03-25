@@ -371,6 +371,43 @@ namespace AnodicaInsumos.Controllers
             return Json(new { data, total, page, pageSize });
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetLineasPorProveedor(int proveedorId)
+        {
+            var lineas = await _contenedorTrabajo.Linea.GetAllAsync();
+
+            var resultado = lineas
+                .Where(x => x.ProveedorRef == proveedorId)
+                .Select(x => new
+                {
+                    value = x.LineaID,
+                    text = x.LineaNombre
+                })
+                .ToList();
+
+            return Json(resultado);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetPerfilPorCodigo(string codigo)
+        {
+            if (string.IsNullOrWhiteSpace(codigo))
+                return Json(null);
+
+            var perfil = await _contenedorTrabajo.Perfil
+                .GetFirstOrDefaultAsync(p => p.PerfilCodigoAlcemar == codigo);
+
+            if (perfil == null)
+                return Json(null);
+
+            return Json(new
+            {
+                codigo = perfil.PerfilCodigoAlcemar,
+                descripcion = perfil.Descripcion,
+                id = perfil.PerfilID
+            });
+        }
+
         [HttpDelete]
         public async Task<IActionResult> Delete(int id)
         {
