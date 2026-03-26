@@ -29,8 +29,7 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
             Expression<Func<T, bool>>? filter = null,
             Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
             string? includeProperties = null,
-            bool? NoTracking = false
-        )
+            bool? NoTracking = false)
         {
             IQueryable<T> query = dbSet;
 

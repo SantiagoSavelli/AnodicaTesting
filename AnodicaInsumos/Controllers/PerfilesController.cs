@@ -67,7 +67,8 @@ namespace AnodicaInsumos.Controllers
                 await _contenedorTrabajo.SaveAsync();
 
                 return RedirectToAction(nameof(Index));
-            } catch (Exception ex)
+            } 
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al crear el perfil");
                 ModelState.AddModelError(string.Empty, "Ocurrió un error al crear el perfil. Por favor, intente nuevamente.");
@@ -242,9 +243,8 @@ namespace AnodicaInsumos.Controllers
 
             if (perfilDb.Equivalencias == null)
                 throw new ArgumentException("El perfil no tiene cargado las equivalencias");
-
-            _mapper.Map(vm.Perfil, perfilDb);
-            perfilDb.UbicacionRef = null;
+            
+            _mapper.Map(vm, perfilDb);
             
             if (vm.EliminarImagen && vm.ArchivoImagen == null)
             {
@@ -257,39 +257,9 @@ namespace AnodicaInsumos.Controllers
                 perfilDb.ImagenPerfil = memoryStream.ToArray();
             }
 
-            foreach (var tratamiento in vm.PerfilTratamientos)
-            {
-                var existente = perfilDb.Tratamientos.FirstOrDefault(x => x.TratamientoRef == tratamiento.TratamientoRef);
-
-                if (tratamiento.UbicacionRef == null && tratamiento.CantMinimaTirasStock == 0 && existente != null)
-                {
-                    perfilDb.Tratamientos.Remove(existente);
-                    continue;
-                }
-                else if (existente != null)
-                {
-                    existente.UbicacionRef = tratamiento.UbicacionRef;
-                    existente.CantMinimaTirasStock = tratamiento.CantMinimaTirasStock;
-                } 
-                else if (existente == null && (tratamiento.UbicacionRef == null && tratamiento.CantMinimaTirasStock == 0))
-                {
-                    continue;
-                }
-                else
-                {
-                    perfilDb.Tratamientos.Add(new PerfilTratamiento
-                    {
-                        PerfilRef = perfilDb.PerfilID,
-                        TratamientoRef = tratamiento.TratamientoRef,
-                        UbicacionRef = tratamiento.UbicacionRef,
-                        CantMinimaTirasStock = tratamiento.CantMinimaTirasStock
-                    });
-                }
-            }
-            
-            var codigos = vm.PerfilEquivalencias
+            var codigos = vm.PerfilEquivalencias 
                 .Where(x => !string.IsNullOrWhiteSpace(x.Codigo))
-                .Select(x => x.Codigo.Trim())
+                .Select(x => x.Codigo!.Trim())
                 .Distinct()
                 .ToList();
 
