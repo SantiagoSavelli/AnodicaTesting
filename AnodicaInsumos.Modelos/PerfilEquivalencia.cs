@@ -18,9 +18,9 @@ namespace AnodicaInsumos.Modelos
         public int PerfilEquivalenteRef { get; set; }
 
         [ForeignKey("PerfilRef")]
-        public Perfil? PerfilPrincipal { get; set; }
+        public Perfil? Perfil { get; set; }
 
         [ForeignKey("PerfilEquivalenteRef")]
-        public Perfil? PerfilAlternativo { get; set; }
+        public Perfil? PerfilEquivalente { get; set; }
     }
 }

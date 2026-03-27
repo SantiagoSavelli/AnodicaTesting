@@ -13,5 +13,13 @@ namespace AnodicaInsumos.AccessoDatos.Data.Repository
         {
             _db = db;
         }
+
+        public void Update(LineaGrupo lineaGrupo)
+        {
+            var objDesdeDb = _db.LineaGrupo.FirstOrDefault(s => s.LineaGrupoID == lineaGrupo.LineaGrupoID);
+            if (objDesdeDb == null) return;
+            
+            objDesdeDb.LineaGrupoNombre = lineaGrupo.LineaGrupoNombre;
+        }
     }
 }
