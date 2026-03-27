@@ -14,7 +14,7 @@ namespace AnodicaInsumos.Modelos
         [Required(ErrorMessage = "El nombre de la linea es obligatorio")]
         [MaxLength(100)]
         [Display(Name = "Nombre de la linea")]
-        public string LineaNombre { get; set; }
+        public string? LineaNombre { get; set; } 
 
         [Required(ErrorMessage = "El proveedor es obligatorio")]
         public int ProveedorRef { get; set; }
